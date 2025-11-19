@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import { generateMovieMetadata } from "./metadata";
 
-export async function generateMetadata({ params }): Promise<Metadata> {
+type Props = {
+  params: Promise<{ id: string }>;
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   return await generateMovieMetadata(id);
 }

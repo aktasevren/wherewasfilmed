@@ -29,7 +29,7 @@ const nextConfig: NextConfig = {
   compress: true,
   poweredByHeader: false,
   reactStrictMode: true,
-  swcMinify: true,
+  // swcMinify is enabled by default in Next.js 16, no need to specify
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
