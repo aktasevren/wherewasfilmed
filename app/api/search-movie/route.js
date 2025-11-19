@@ -1,14 +1,17 @@
 import { NextResponse } from 'next/server';
 import axios from 'axios';
 
-const TMDB_API_KEY = process.env.TMDB_API_KEY || 'ed3d6526412667469a4e1a08a88488ef';
-
-if (!process.env.TMDB_API_KEY) {
-  console.warn('TMDB_API_KEY environment variable is not set, using fallback');
-}
+const TMDB_API_KEY = process.env.TMDB_API_KEY;
 
 export async function GET(request) {
   try {
+    if (!TMDB_API_KEY) {
+      return NextResponse.json(
+        { error: 'Movie service unavailable' },
+        { status: 503 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('query');
 

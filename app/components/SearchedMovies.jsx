@@ -5,12 +5,48 @@ import { Container, Col, Row } from 'react-bootstrap';
 import Link from 'next/link';
 import { useDispatch, useSelector } from 'react-redux';
 import { getLocations, getPoster } from '@/lib/redux/actions/MovieActions';
+import { getImageUrl } from '@/lib/utils/imageUrl';
+
+// Skeleton Card Component
+const MovieCardSkeleton = () => {
+  return (
+    <Col xl={3} lg={6} sm={12}>
+      <article className="card skeleton-card">
+        <div className="skeleton-image"></div>
+        <div className="card__content | flow">
+          <div className="card__content--container | flow">
+            <div className="skeleton-title"></div>
+            <div className="skeleton-description">
+              <div className="skeleton-line"></div>
+              <div className="skeleton-line"></div>
+              <div className="skeleton-line skeleton-line-short"></div>
+            </div>
+          </div>
+        </div>
+      </article>
+    </Col>
+  );
+};
 
 export default function SearchedMovies() {
   const dispatch = useDispatch();
   const fMovies = useSelector((state) => state.MovieReducer.fMovies);
+  const fMoviesLoading = useSelector((state) => state.MovieReducer.fMoviesLoading);
 
   useEffect(() => {}, [fMovies]);
+
+  // Skeleton göster (loading durumunda veya veri yoksa)
+  if (fMoviesLoading || fMovies.length === 0) {
+    return (
+      <Container>
+        <Row>
+          {[...Array(8)].map((_, index) => (
+            <MovieCardSkeleton key={index} />
+          ))}
+        </Row>
+      </Container>
+    );
+  }
 
   return (
     <Container>
@@ -28,8 +64,9 @@ export default function SearchedMovies() {
               <article className="card movie-card">
                 <img
                   className="card__background"
-                  src={`https://image.tmdb.org/t/p/original${movie.poster_path}`}
-                  alt={movie.overview.slice(0, 144) + '...'}
+                  src={getImageUrl(movie.poster_path, 'original')}
+                  alt={movie.overview?.slice(0, 144) + '...' || 'Movie poster'}
+                  loading="lazy"
                 />
                 <div className="card__content | flow">
                   <div className="card__content--container | flow">

@@ -5,10 +5,41 @@ import Movie from '@/models/Movie';
 
 const version = '24.2';
 
+// External service endpoint (maskelenmiş)
+const getExternalServiceUrl = (identifier) => {
+  const baseUrl = 'https://caching.graphql.imdb.com';
+  const operation = 'TitleFilmingLocationsPaginated';
+  const afterToken = 'bGMwMjkwODcz';
+  const hash = '9f2ac963d99baf72b7a108de141901f4caa8c03af2e1a08dfade64db843eff7b';
+  
+  const variables = {
+    after: afterToken,
+    const: identifier,
+    first: 50,
+    isAutoTranslationEnabled: false,
+    locale: 'en-US',
+    originalTitleText: false,
+  };
+  
+  const extensions = {
+    persistedQuery: {
+      sha256Hash: hash,
+      version: 1,
+    },
+  };
+  
+  const params = new URLSearchParams({
+    operationName: operation,
+    variables: JSON.stringify(variables),
+    extensions: JSON.stringify(extensions),
+  });
+  
+  return `${baseUrl}/?${params.toString()}`;
+};
+
 export async function GET(request, { params }) {
   const start = performance.now();
   const { id: imdbid } = await params;
-  console.log(`Request received for IMDB ID: ${imdbid}`);
 
   try {
     await connectDB();
@@ -23,10 +54,10 @@ export async function GET(request, { params }) {
       });
     }
 
-    const response = await axios.get(
-      `https://caching.graphql.imdb.com/?operationName=TitleFilmingLocationsPaginated&variables=%7B%22after%22%3A%22bGMwMjkwODcz%22%2C%22const%22%3A%22${imdbid}%22%2C%22first%22%3A50%2C%22isAutoTranslationEnabled%22%3Afalse%2C%22locale%22%3A%22en-US%22%2C%22originalTitleText%22%3Afalse%7D&extensions=%7B%22persistedQuery%22%3A%7B%22sha256Hash%22%3A%229f2ac963d99baf72b7a108de141901f4caa8c03af2e1a08dfade64db843eff7b%22%2C%22version%22%3A1%7D%7D`,
-      { headers: { 'Content-Type': 'application/json' } }
-    );
+    const serviceUrl = getExternalServiceUrl(imdbid);
+    const response = await axios.get(serviceUrl, {
+      headers: { 'Content-Type': 'application/json' },
+    });
 
     if (!response.data.data || !response.data.data.title.filmingLocations) {
       return NextResponse.json({
