@@ -36,7 +36,7 @@ export default function Movies() {
   useEffect(() => {
   }, [popularMovies]);
 
-  // Skeleton göster (sadece loading durumunda)
+  // Show skeleton (only when loading)
   if (popularMoviesLoading) {
     return (
       <Container className="movies-container">
@@ -49,7 +49,7 @@ export default function Movies() {
     );
   }
 
-  // Eğer loading tamamlandı ama veri yoksa, hata mesajı göster
+  // Show error message if loading is complete but no data
   if (!popularMoviesLoading && popularMovies.length === 0) {
     return (
       <Container className="movies-container">
@@ -60,27 +60,27 @@ export default function Movies() {
                 ⚠️
               </div>
               <h3 className="error-title">
-                Filmler Yüklenemedi
+                Failed to Load Movies
               </h3>
               <p className="error-description">
-                API yapılandırması eksik. Lütfen <code>TMDB_API_KEY</code> environment variable'ını ekleyin.
+                API configuration is missing. Please add the <code>TMDB_API_KEY</code> environment variable.
               </p>
               <div className="error-steps">
                 <h4 style={{ marginBottom: '16px', fontSize: '18px', color: '#9fd3c7' }}>
-                  Kurulum Adımları:
+                  Setup Steps:
                 </h4>
                 <ol style={{ textAlign: 'left', maxWidth: '600px', margin: '0 auto', color: '#9fd3c7', lineHeight: '2' }}>
                   <li style={{ marginBottom: '12px' }}>
-                    Proje root dizininde <code style={{ background: 'rgba(159, 211, 199, 0.2)', padding: '2px 8px', borderRadius: '4px' }}>.env.local</code> dosyası oluşturun
+                    Create a <code style={{ background: 'rgba(159, 211, 199, 0.2)', padding: '2px 8px', borderRadius: '4px' }}>.env.local</code> file in the project root directory
                   </li>
                   <li style={{ marginBottom: '12px' }}>
-                    Dosyaya şu satırı ekleyin: <br />
+                    Add the following line to the file: <br />
                     <code style={{ background: 'rgba(159, 211, 199, 0.2)', padding: '4px 8px', borderRadius: '4px', display: 'inline-block', marginTop: '4px' }}>
                       TMDB_API_KEY=your_api_key_here
                     </code>
                   </li>
                   <li style={{ marginBottom: '12px' }}>
-                    API key almak için: <br />
+                    Get your API key from: <br />
                     <a 
                       href="https://www.themoviedb.org/settings/api" 
                       target="_blank" 
@@ -91,7 +91,7 @@ export default function Movies() {
                     </a>
                   </li>
                   <li>
-                    Development server'ı <strong>yeniden başlatın</strong> (environment variable değişiklikleri için gerekli)
+                    <strong>Restart</strong> the development server (required for environment variable changes)
                   </li>
                 </ol>
               </div>

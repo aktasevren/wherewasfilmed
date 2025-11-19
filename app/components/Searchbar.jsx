@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { fetchMovies } from '@/lib/redux/actions/MovieActions';
 import { Row, Col, Button, Form, InputGroup } from 'react-bootstrap';
 
-// alertifyjs'i dinamik olarak import et
+// Dynamically import alertifyjs (to prevent SSR errors)
 const getAlertify = () => {
   if (typeof window !== 'undefined') {
     return require('alertifyjs');
@@ -39,7 +39,7 @@ export default function Searchbar() {
 
   return (
     <Row className="searchbar">
-      <Col xs={12} sm={10} md={8} lg={6} xl={5} className="mx-auto">
+      <Col xs={12} sm={11} md={9} lg={7} xl={6} className="mx-auto">
         <InputGroup className="search-input-group" onChange={onChange}>
           <Form.Control 
             placeholder="Type a movie name ..." 

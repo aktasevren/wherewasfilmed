@@ -35,7 +35,7 @@ export default function SearchedMovies() {
 
   useEffect(() => {}, [fMovies]);
 
-  // Skeleton göster (loading durumunda veya veri yoksa)
+  // Show skeleton (when loading or no data)
   if (fMoviesLoading || fMovies.length === 0) {
     return (
       <Container className="movies-container">

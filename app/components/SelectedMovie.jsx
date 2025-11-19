@@ -17,7 +17,7 @@ const Popup = dynamic(() => import('react-leaflet').then((mod) => mod.Popup), {
   ssr: false,
 });
 
-// Icon'u client-side'da kullanmak için dinamik import
+// Dynamic import for client-side Leaflet icon usage
 const getLeafletIcon = () => {
   if (typeof window !== 'undefined') {
     const L = require('leaflet');
@@ -26,24 +26,95 @@ const getLeafletIcon = () => {
   return null;
 };
 
-export function SelectedMovie() {
-  const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+// Location Loading Component
+const LocationLoading = () => {
+  const loadingMessages = [
+    'Searching for filming locations...',
+    'Loading map...',
+    'Calculating coordinates...',
+    'Detecting film sets...',
+    'Preparing locations...',
+  ];
 
+  const [currentMessage, setCurrentMessage] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentMessage((prev) => (prev + 1) % loadingMessages.length);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="location-loading-container">
+      <div className="loading-content">
+        <div className="loading-animation">
+          <div className="globe-wrapper">
+            <div className="globe">
+              <div className="globe-inner">
+                <div className="map-pin map-pin-1">📍</div>
+                <div className="map-pin map-pin-2">📍</div>
+                <div className="map-pin map-pin-3">📍</div>
+              </div>
+            </div>
+          </div>
+          <div className="pulse-ring pulse-ring-1"></div>
+          <div className="pulse-ring pulse-ring-2"></div>
+          <div className="pulse-ring pulse-ring-3"></div>
+        </div>
+        
+        <div className="loading-text">
+          <h2 className="loading-title">Finding Locations</h2>
+          <p className="loading-message">{loadingMessages[currentMessage]}</p>
+          <div className="loading-progress">
+            <div className="progress-bar"></div>
+          </div>
+        </div>
+
+        <div className="loading-features">
+          <div className="feature-dot feature-dot-1"></div>
+          <div className="feature-dot feature-dot-2"></div>
+          <div className="feature-dot feature-dot-3"></div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export function SelectedMovie() {
   const [movieInfos, poster] = useSelector((state) => [
     state.MovieReducer.movieInfos,
     state.MovieReducer.poster,
   ]);
 
   const [coordinates, setCoordinates] = useState([]);
+  const [showMap, setShowMap] = useState(false);
+  const [loadingStartTime] = useState(Date.now());
+  const [minLoadingTime] = useState(5000); // Minimum 5 seconds
 
   useEffect(() => {
-    async function makeRequest() {
-      await delay(2000);
-      setCoordinates(movieInfos);
-      console.log(coordinates);
+    async function processLocations() {
+      // Wait minimum 5 seconds
+      const elapsed = Date.now() - loadingStartTime;
+      const remainingTime = Math.max(0, minLoadingTime - elapsed);
+      
+      await new Promise((resolve) => setTimeout(resolve, remainingTime));
+      
+      // Set coordinates
+      if (movieInfos && movieInfos.length > 0) {
+        setCoordinates(movieInfos);
+        setShowMap(true);
+      } else {
+        // Wait minimum time even if no locations found
+        setShowMap(true);
+      }
     }
-    makeRequest();
-  }, [movieInfos, coordinates]);
+
+    if (movieInfos) {
+      processLocations();
+    }
+  }, [movieInfos, loadingStartTime, minLoadingTime]);
 
   const defaultCenter =
     coordinates.length > 0 && coordinates[0].Ycoor && coordinates[0].Xcoor
@@ -51,75 +122,65 @@ export function SelectedMovie() {
       : [55, 60];
 
   return (
-    <div>
-      {coordinates.length === 0 ? (
-        <div style={{ textAlign: 'center', marginTop: '20px' }}>
-          <iframe
-            src="https://giphy.com/embed/VI2UC13hwWin1MIfmi"
-            width="480"
-            height="322"
-            style={{ border: 'none' }}
-            frameBorder="0"
-            allowFullScreen
-            title="Loading Animation"
-          ></iframe>
-          <p>
-            <a
-              href="https://giphy.com/gifs/VI2UC13hwWin1MIfmi"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              via GIPHY
-            </a>
-          </p>
-        </div>
+    <div className="selected-movie-container">
+      {!showMap || coordinates.length === 0 ? (
+        <LocationLoading />
       ) : (
-        <MapContainer
-          center={defaultCenter}
-          zoom={3}
-          minZoom={0}
-          maxZoom={12}
-          scrollWheelZoom={true}
-        >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://tile.openstreetmap.de/{z}/{x}/{y}.png"
-          />
-          {coordinates.map(
-            (elem, index) =>
-              elem.Ycoor !== undefined &&
-              elem.Xcoor !== undefined && (
-                <Marker
-                  key={index}
-                  position={[elem.Ycoor, elem.Xcoor]}
-                  icon={
-                    (() => {
-                      const Icon = getLeafletIcon();
-                      if (Icon) {
-                        return new Icon({
-                          iconUrl: '/assets/film.png',
-                          iconSize: [37.5, 37.5],
-                          iconAnchor: [12, 41],
-                        });
-                      }
-                      return null;
-                    })()
-                  }
-                >
-                  <Popup className="leaflet-popup">
-                    <b>{movieInfos[index].place}</b>
-                    <br />
-                    {movieInfos[index].desc === undefined ? null : (
-                      <div>
-                        <span style={{ color: 'red' }}>Description:</span>
-                        {' ' + movieInfos[index].desc}
+        <div className="map-wrapper">
+          <MapContainer
+            center={defaultCenter}
+            zoom={3}
+            minZoom={0}
+            maxZoom={12}
+            scrollWheelZoom={true}
+            className="map-container"
+          >
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://tile.openstreetmap.de/{z}/{x}/{y}.png"
+            />
+            {coordinates.map(
+              (elem, index) =>
+                elem.Ycoor !== undefined &&
+                elem.Xcoor !== undefined && (
+                  <Marker
+                    key={index}
+                    position={[elem.Ycoor, elem.Xcoor]}
+                    icon={
+                      (() => {
+                        const Icon = getLeafletIcon();
+                        if (Icon) {
+                          return new Icon({
+                            iconUrl: '/assets/film.png',
+                            iconSize: [40, 40],
+                            iconAnchor: [20, 40],
+                            popupAnchor: [0, -40],
+                            className: 'custom-marker-icon',
+                          });
+                        }
+                        return null;
+                      })()
+                    }
+                  >
+                    <Popup className="custom-popup" closeButton={true}>
+                      <div className="popup-content">
+                        <div className="popup-header">
+                          <div className="popup-icon">🎬</div>
+                          <h3 className="popup-title">{movieInfos[index].place}</h3>
+                        </div>
+                        {movieInfos[index].desc && movieInfos[index].desc !== 'No description available' && (
+                          <div className="popup-description">
+                            <div className="popup-label">Scene</div>
+                            <p className="popup-text">{movieInfos[index].desc}</p>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </Popup>
-                </Marker>
-              )
-          )}
-        </MapContainer>
+                    </Popup>
+                  </Marker>
+                )
+            )}
+          </MapContainer>
+        </div>
       )}
     </div>
   );
