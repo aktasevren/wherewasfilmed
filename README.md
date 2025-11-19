@@ -35,17 +35,23 @@ cd where-is-this-nextjs
 npm install
 ```
 
-3. `.env.local` dosyası oluşturun:
+3. `.env.local` dosyası oluşturun ve gerekli API anahtarlarını ekleyin:
 ```bash
-cp .env.local.example .env.local
+# Proje root dizininde .env.local dosyası oluşturun
+touch .env.local
 ```
 
-4. `.env.local` dosyasını düzenleyin ve gerekli API anahtarlarını ekleyin:
-```
+`.env.local` dosyasına şu içeriği ekleyin:
+```env
+TMDB_API_KEY=your_tmdb_api_key_here
+GEOAPIFY_API_KEY=your_geoapify_api_key_here
 MONGODB_URI=your_mongodb_connection_string
-TMDB_API_KEY=your_tmdb_api_key
-GEOAPIFY_API_KEY=your_geoapify_api_key
 ```
+
+**API Key'lerini Nasıl Alırsınız:**
+- **TMDB API Key**: https://www.themoviedb.org/settings/api adresinden ücretsiz API key alabilirsiniz
+- **Geoapify API Key**: https://www.geoapify.com/get-started-with-maps-api adresinden ücretsiz API key alabilirsiniz
+- **MongoDB URI**: MongoDB Atlas'tan veya lokal MongoDB bağlantı string'iniz
 
 5. Geliştirme sunucusunu başlatın:
 ```bash

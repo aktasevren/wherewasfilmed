@@ -38,8 +38,8 @@ export default function SearchedMovies() {
   // Skeleton göster (loading durumunda veya veri yoksa)
   if (fMoviesLoading || fMovies.length === 0) {
     return (
-      <Container>
-        <Row>
+      <Container className="movies-container">
+        <Row className="movies-row">
           {[...Array(8)].map((_, index) => (
             <MovieCardSkeleton key={index} />
           ))}
@@ -49,10 +49,10 @@ export default function SearchedMovies() {
   }
 
   return (
-    <Container>
-      <Row>
+    <Container className="movies-container">
+      <Row className="movies-row">
         {fMovies.map((movie, index) => (
-          <Col key={index} xl={3} lg={6} sm={12}>
+          <Col key={index} xl={3} lg={6} sm={12} className="movie-col">
             <Link
               href={`/movie/${movie.id}`}
               style={{ textDecoration: 'none' }}

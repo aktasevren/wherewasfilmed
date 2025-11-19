@@ -39,10 +39,20 @@ export default function Searchbar() {
 
   return (
     <Row className="searchbar">
-      <Col lg={4}>
-        <InputGroup className="my-3" onChange={onChange}>
-          <Form.Control placeholder="Type a movie name ..." />
-          <Button onClick={onSubmit}>
+      <Col xs={12} sm={10} md={8} lg={6} xl={5} className="mx-auto">
+        <InputGroup className="search-input-group" onChange={onChange}>
+          <Form.Control 
+            placeholder="Type a movie name ..." 
+            value={inputText}
+            onChange={onChange}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                onSubmit(e);
+              }
+            }}
+            className="search-input"
+          />
+          <Button onClick={onSubmit} className="search-button">
             <b>Search</b>
           </Button>
         </InputGroup>

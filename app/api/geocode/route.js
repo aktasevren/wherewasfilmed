@@ -3,10 +3,6 @@ import axios from 'axios';
 
 const GEOAPIFY_API_KEY = process.env.GEOAPIFY_API_KEY;
 
-if (!GEOAPIFY_API_KEY) {
-  console.warn('GEOAPIFY_API_KEY environment variable is not set');
-}
-
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -20,8 +16,15 @@ export async function GET(request) {
     }
 
     if (!GEOAPIFY_API_KEY) {
+      if (process.env.NODE_ENV === 'development') {
+        console.error('❌ GEOAPIFY_API_KEY environment variable is not set!');
+        console.error('📝 Please add GEOAPIFY_API_KEY to your .env.local file');
+      }
       return NextResponse.json(
-        { error: 'Geocoding service unavailable' },
+        { 
+          error: 'Geocoding service unavailable',
+          message: 'GEOAPIFY_API_KEY environment variable is not configured'
+        },
         { status: 503 }
       );
     }

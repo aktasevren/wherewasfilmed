@@ -36,11 +36,11 @@ export default function Movies() {
   useEffect(() => {
   }, [popularMovies]);
 
-  // Skeleton göster (loading durumunda veya veri yoksa)
-  if (popularMoviesLoading || popularMovies.length === 0) {
+  // Skeleton göster (sadece loading durumunda)
+  if (popularMoviesLoading) {
     return (
-      <Container>
-        <Row>
+      <Container className="movies-container">
+        <Row className="movies-row">
           {[...Array(8)].map((_, index) => (
             <MovieCardSkeleton key={index} />
           ))}
@@ -49,11 +49,64 @@ export default function Movies() {
     );
   }
 
+  // Eğer loading tamamlandı ama veri yoksa, hata mesajı göster
+  if (!popularMoviesLoading && popularMovies.length === 0) {
+    return (
+      <Container className="movies-container">
+        <Row className="movies-row">
+          <Col xs={12}>
+            <div className="error-message-container">
+              <div className="error-icon" style={{ fontSize: '64px', marginBottom: '24px' }}>
+                ⚠️
+              </div>
+              <h3 className="error-title">
+                Filmler Yüklenemedi
+              </h3>
+              <p className="error-description">
+                API yapılandırması eksik. Lütfen <code>TMDB_API_KEY</code> environment variable'ını ekleyin.
+              </p>
+              <div className="error-steps">
+                <h4 style={{ marginBottom: '16px', fontSize: '18px', color: '#9fd3c7' }}>
+                  Kurulum Adımları:
+                </h4>
+                <ol style={{ textAlign: 'left', maxWidth: '600px', margin: '0 auto', color: '#9fd3c7', lineHeight: '2' }}>
+                  <li style={{ marginBottom: '12px' }}>
+                    Proje root dizininde <code style={{ background: 'rgba(159, 211, 199, 0.2)', padding: '2px 8px', borderRadius: '4px' }}>.env.local</code> dosyası oluşturun
+                  </li>
+                  <li style={{ marginBottom: '12px' }}>
+                    Dosyaya şu satırı ekleyin: <br />
+                    <code style={{ background: 'rgba(159, 211, 199, 0.2)', padding: '4px 8px', borderRadius: '4px', display: 'inline-block', marginTop: '4px' }}>
+                      TMDB_API_KEY=your_api_key_here
+                    </code>
+                  </li>
+                  <li style={{ marginBottom: '12px' }}>
+                    API key almak için: <br />
+                    <a 
+                      href="https://www.themoviedb.org/settings/api" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      style={{ color: '#9fd3c7', textDecoration: 'underline' }}
+                    >
+                      https://www.themoviedb.org/settings/api
+                    </a>
+                  </li>
+                  <li>
+                    Development server'ı <strong>yeniden başlatın</strong> (environment variable değişiklikleri için gerekli)
+                  </li>
+                </ol>
+              </div>
+            </div>
+          </Col>
+        </Row>
+      </Container>
+    );
+  }
+
   return (
-    <Container>
-      <Row>
+    <Container className="movies-container">
+      <Row className="movies-row">
         {popularMovies.map((movie, index) => (
-          <Col key={index} xl={3} lg={6} sm={12}>
+          <Col key={index} xl={3} lg={6} sm={12} className="movie-col">
             <Link key={index} href={`/movie/${movie.id}`} style={{ textDecoration: 'none' }}>
               <article
                 className="card"
