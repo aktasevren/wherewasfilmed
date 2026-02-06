@@ -25,11 +25,8 @@ Vercel dashboard'da projenizin **Settings > Environment Variables** bölümüne 
 ### Zorunlu Environment Variables:
 
 ```
-MONGODB_URI=mongodb+srv://admin:admin@where-is-this-be.ner2p.mongodb.net/?retryWrites=true&w=majority&appName=where-is-this-be
-```
-
-```
-TMDB_API_KEY=ed3d6526412667469a4e1a08a88488ef
+LOCATIONS_SERVICE_BASE_URL=https://caching.graphql.imdb.com
+SUGGESTION_SERVICE_BASE_URL=https://v3.sg.media-imdb.com
 ```
 
 ### Opsiyonel (Geocoding için - Client-side'da kullanıldığı için NEXT_PUBLIC_ prefix'i gerekli):
@@ -51,35 +48,22 @@ Vercel otomatik olarak Next.js projelerini algılar, ancak manuel ayar yapmak is
 - **Output Directory:** `.next` (otomatik algılanır)
 - **Install Command:** `npm install` (otomatik algılanır)
 
-## 4. MongoDB Atlas Ayarları
-
-MongoDB Atlas'da IP whitelist ayarlarını kontrol edin:
-
-1. MongoDB Atlas dashboard'a gidin
-2. **Network Access** bölümüne gidin
-3. Vercel'in IP adreslerine izin verin veya `0.0.0.0/0` ekleyin (tüm IP'lere izin verir)
-
-**Güvenlik Notu:** Production'da sadece Vercel IP'lerine izin vermek daha güvenlidir.
-
-## 5. Deploy Sonrası Kontrol
+## 4. Deploy Sonrası Kontrol
 
 Deploy tamamlandıktan sonra:
 
 1. ✅ Ana sayfa yükleniyor mu? (`/`)
-2. ✅ API route'lar çalışıyor mu? (`/api/popular-movies`)
-3. ✅ Film arama çalışıyor mu?
-4. ✅ MongoDB bağlantısı çalışıyor mu? (Film detay sayfasında lokasyonlar görünüyor mu?)
+2. ✅ API route'lar çalışıyor mu? (`/api/search-suggestions`)
+3. ✅ Film/dizi arama çalışıyor mu?
+4. ✅ Lokasyonlar görünüyor mu? (Film detay sayfasında lokasyonlar görünüyor mu?)
 
 ## 6. Troubleshooting
 
-### MongoDB Bağlantı Hatası
-- Environment variable'ın doğru eklendiğinden emin olun
-- MongoDB Atlas'da IP whitelist kontrolü yapın
-- MongoDB connection string'in doğru olduğundan emin olun
+### Lokasyon Servisi Hatası
+- LOCATIONS_SERVICE_BASE_URL'in doğru eklendiğinden emin olun
 
-### API Key Hatası
-- TMDB_API_KEY'in doğru eklendiğinden emin olun
-- API key'in geçerli olduğundan emin olun
+### Arama Servisi Hatası
+- SUGGESTION_SERVICE_BASE_URL'in doğru eklendiğinden emin olun
 
 ### Build Hatası
 - `npm run build` komutunu local'de çalıştırıp hataları kontrol edin

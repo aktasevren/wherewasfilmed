@@ -31,10 +31,15 @@ export async function GET(request) {
 
     const encodedPlace = encodeURIComponent(place);
     const geoResponse = await axios.get(
-      `https://api.geoapify.com/v1/geocode/search?text=${encodedPlace}&apiKey=${GEOAPIFY_API_KEY}`
+      `https://api.geoapify.com/v1/geocode/search?text=${encodedPlace}&apiKey=${GEOAPIFY_API_KEY}`,
+      { timeout: 8000 }
     );
 
-    const coordinates = geoResponse?.data?.features?.[0]?.geometry?.coordinates;
+    const feature = geoResponse?.data?.features?.[0];
+    const coordinates = feature?.geometry?.coordinates;
+    const bbox = feature?.bbox || null;
+    const placeType = feature?.properties?.result_type || feature?.properties?.type || null;
+    const formatted = feature?.properties?.formatted || feature?.properties?.name || place;
     
     if (!coordinates || coordinates.length < 2) {
       return NextResponse.json(
@@ -46,12 +51,29 @@ export async function GET(request) {
     return NextResponse.json({
       Xcoor: coordinates[0],
       Ycoor: coordinates[1],
+      bbox,
+      placeType,
+      formatted,
     });
   } catch (error) {
-    console.error('Error fetching geocode:', error);
+    const status = error.response?.status;
+    const message = error.response?.data?.message ?? error.message;
+    if (status === 401 || status === 403) {
+      return NextResponse.json(
+        { error: 'Geocoding service authentication failed' },
+        { status: 503 }
+      );
+    }
+    if (status === 429) {
+      return NextResponse.json(
+        { error: 'Too many geocode requests' },
+        { status: 429 }
+      );
+    }
+    console.error('Geocode error:', message);
     return NextResponse.json(
       { error: 'Failed to fetch geocode' },
-      { status: 500 }
+      { status: status && status >= 400 && status < 500 ? status : 500 }
     );
   }
 }

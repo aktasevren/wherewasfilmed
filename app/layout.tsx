@@ -10,10 +10,10 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://where-is-this.verce
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Where is this? - Find Movie Filming Locations",
-    template: "%s | Where is this?"
+    default: "Where Was Filmed - Movie & Series Filming Locations on Map",
+    template: "%s | Where Was Filmed"
   },
-  description: "Discover where your favorite movies were filmed! Find exact filming locations on an interactive map. Explore popular movie locations, search by film title, and see where iconic scenes were shot. Your ultimate guide to movie filming locations worldwide.",
+  description: "Discover where your favorite movies and series were filmed. Find every filming location on an interactive map — search by title and explore where it was shot.",
   keywords: [
     "movie filming locations",
     "film locations",
@@ -40,21 +40,21 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: siteUrl,
-    siteName: "Where is this?",
-    title: "Where is this? - Find Movie Filming Locations",
-    description: "Discover where your favorite movies were filmed! Find exact filming locations on an interactive map.",
+    siteName: "Where Was Filmed",
+    title: "Where Was Filmed - Movie & Series Filming Locations on Map",
+    description: "Discover where your favorite movies and series were filmed. Find every filming location on an interactive map.",
     images: [
       {
         url: "/assets/film.png",
         width: 1200,
         height: 630,
-        alt: "Where is this? - Movie Filming Location Finder",
+        alt: "Where Was Filmed - Movie & Series Filming Locations",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Where is this? - Find Movie Filming Locations",
+    title: "Where Was Filmed - Movie & Series Filming Locations on Map",
     description: "Discover where your favorite movies were filmed! Find exact filming locations on an interactive map.",
     images: ["/assets/film.png"],
     creator: "@aktasevren",
@@ -78,12 +78,13 @@ export const metadata: Metadata = {
     // google: "your-google-verification-code",
   },
   category: "Entertainment",
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 5,
-    userScalable: true,
-  },
+};
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
 };
 
 export default function RootLayout({
@@ -94,7 +95,7 @@ export default function RootLayout({
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    "name": "Where is this?",
+    "name": "Where Was Filmed",
     "description": "Discover where your favorite movies were filmed! Find exact filming locations on an interactive map.",
     "url": siteUrl,
     "applicationCategory": "EntertainmentApplication",
@@ -115,7 +116,7 @@ export default function RootLayout({
     },
     "publisher": {
       "@type": "Organization",
-      "name": "Where is this?",
+      "name": "Where Was Filmed",
       "logo": {
         "@type": "ImageObject",
         "url": `${siteUrl}/assets/film.png`
@@ -125,7 +126,7 @@ export default function RootLayout({
       "Find movie filming locations",
       "Interactive map with markers",
       "Search movies by title",
-      "View popular movies",
+      "Search movies and series",
       "Detailed location information"
     ]
   };

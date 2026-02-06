@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import NavbarComponent from '@/app/components/NavbarComponent';
 import SelectedMovie from '@/app/components/SelectedMovie';
 import Footer from '@/app/components/Footer';
-import { getLocations, getPoster, getMovieDetails, getMovieImages } from '@/lib/redux/actions/MovieActions';
+import { getLocations } from '@/lib/redux/actions/MovieActions';
 
 export default function MoviePage() {
   const params = useParams();
@@ -18,8 +18,6 @@ export default function MoviePage() {
   useEffect(() => {
     if (movieId) {
       dispatch(getLocations(movieId));
-      dispatch(getMovieDetails(movieId));
-      dispatch(getMovieImages(movieId));
     }
   }, [movieId, dispatch]);
 
@@ -29,15 +27,10 @@ export default function MoviePage() {
     "@type": "Movie",
     "name": movieDetails.title || movieDetails.original_title,
     "description": movieDetails.overview,
-    "image": movieDetails.poster_path 
-      ? `/api/image?path=${encodeURIComponent(movieDetails.poster_path)}&size=w500`
-      : "/assets/film.png",
-    "datePublished": movieDetails.release_date,
-    ...(movieDetails.genres && movieDetails.genres.length > 0 && {
-      "genre": movieDetails.genres.map(g => g.name).join(", ")
-    }),
+    "image": movieDetails.poster_url || "/assets/film.png",
+    "datePublished": "",
     ...(movieInfos && movieInfos.length > 0 && {
-      "contentLocation": movieInfos.map((location, index) => ({
+      "contentLocation": movieInfos.map((location) => ({
         "@type": "Place",
         "name": location.place,
         "geo": location.Ycoor && location.Xcoor ? {
