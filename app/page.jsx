@@ -4,10 +4,15 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Searchbar from './components/Searchbar';
 import AppHeader from './components/AppHeader';
+import Footer from './components/Footer';
 import { IconTrendingUp, IconLocationOn, IconVideocam } from './components/Icons';
+import { encodeMovieId } from '@/lib/movieId';
+
+const MAX_RECENT = 10;
 
 export default function Home() {
   const [popular, setPopular] = useState([]);
+  const [recent, setRecent] = useState([]);
 
   useEffect(() => {
     fetch('/api/searches?type=popular&limit=8')
@@ -18,13 +23,32 @@ export default function Home() {
       .catch(() => setPopular([]));
   }, []);
 
+  useEffect(() => {
+    fetch(`/api/searches?type=recent&limit=${MAX_RECENT}`)
+      .then((res) => res.ok ? res.json() : { recent: [] })
+      .then((data) => {
+        if (Array.isArray(data?.recent)) setRecent(data.recent.slice(0, MAX_RECENT));
+      })
+      .catch(() => setRecent([]));
+  }, []);
+
   const trendingItems = (popular || []).map((item) => {
     const rawTitle = item.title?.trim();
     const displayTitle =
       rawTitle && rawTitle !== 'Unknown title' ? rawTitle : (item.movieId || '');
     return {
       title: displayTitle,
-      href: `/movie/${encodeURIComponent(item.movieId)}`,
+      href: `/movie/${encodeMovieId(item.movieId)}`,
+    };
+  });
+
+  const recentItems = (recent || []).slice(0, MAX_RECENT).map((item) => {
+    const rawTitle = item.title?.trim();
+    const displayTitle =
+      rawTitle && rawTitle !== 'Unknown title' ? rawTitle : (item.movieId || '');
+    return {
+      title: displayTitle,
+      href: `/movie/${encodeMovieId(item.movieId)}`,
     };
   });
 
@@ -67,6 +91,28 @@ export default function Home() {
                       <IconLocationOn size={28} />
                     </span>
                     <span className="text-lg font-medium">{item.title}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {recentItems.length > 0 && (
+            <div className="w-full max-w-6xl mt-10">
+              <div className="flex items-center justify-center gap-2 mb-6">
+                <span className="text-white/60">
+                  <IconLocationOn size={22} className="text-xl" />
+                </span>
+                <h3 className="text-sm font-bold uppercase tracking-[0.3em] text-white/50">Recent Searches</h3>
+              </div>
+              <div className="flex flex-wrap justify-center gap-3 px-4 pb-4">
+                {recentItems.map((item) => (
+                  <Link
+                    key={item.href + item.title}
+                    href={item.href}
+                    className="flex-none flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full pl-3 pr-6 py-2.5 cursor-pointer transition-all no-underline text-white/90 text-sm"
+                  >
+                    <span className="text-lg font-medium truncate max-w-[180px] sm:max-w-[220px]">{item.title}</span>
                   </Link>
                 ))}
               </div>
@@ -144,19 +190,44 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+        <section className="max-w-7xl mx-auto px-6 py-24 border-t border-white/5">
+          <h2 className="text-center text-sm font-bold uppercase tracking-[0.3em] text-white/50 mb-14">
+            How it works
+          </h2>
+          <div className="grid md:grid-cols-3 gap-12 text-center">
+            <div className="space-y-4">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/20 border border-primary/30 text-primary">
+                <span className="text-2xl font-bold">1</span>
+              </div>
+              <h3 className="text-lg font-semibold text-white">Search a movie or show</h3>
+              <p className="text-white/50 text-sm max-w-xs mx-auto">
+                Type the name of any film or series and pick from the suggestions.
+              </p>
+            </div>
+            <div className="space-y-4">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/20 border border-primary/30 text-primary">
+                <span className="text-2xl font-bold">2</span>
+              </div>
+              <h3 className="text-lg font-semibold text-white">Explore filming locations</h3>
+              <p className="text-white/50 text-sm max-w-xs mx-auto">
+                See where each scene was shot on the map with pins and region highlights.
+              </p>
+            </div>
+            <div className="space-y-4">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/20 border border-primary/30 text-primary">
+                <span className="text-2xl font-bold">3</span>
+              </div>
+              <h3 className="text-lg font-semibold text-white">Plan your visit</h3>
+              <p className="text-white/50 text-sm max-w-xs mx-auto">
+                Use the list and map to plan trips to real-world filming locations.
+              </p>
+            </div>
+          </div>
+        </section>
       </main>
 
-      <div className="max-w-7xl mx-auto px-6 py-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 opacity-30 hover:opacity-100 transition-opacity">
-        <p className="text-[10px] tracking-[0.2em] uppercase">© 2024 WHERE WAS IT FILMED. ALL RIGHTS RESERVED.</p>
-        <div className="flex gap-8 text-[10px] uppercase tracking-[0.2em]">
-          <a className="hover:text-primary transition-colors text-inherit" href="#">
-            Privacy
-          </a>
-          <a className="hover:text-primary transition-colors text-inherit" href="#">
-            Terms
-          </a>
-        </div>
-      </div>
+      <Footer />
     </div>
   );
 }

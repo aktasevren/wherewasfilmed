@@ -5,6 +5,7 @@ import { Container, Col, Row } from 'react-bootstrap';
 import Link from 'next/link';
 import { useDispatch, useSelector } from 'react-redux';
 import { getLocations } from '@/lib/redux/actions/MovieActions';
+import { encodeMovieId } from '@/lib/movieId';
 
 const MovieCardSkeleton = () => (
   <Col xl={3} lg={6} sm={12}>
@@ -26,13 +27,14 @@ const MovieCardSkeleton = () => (
 
 function ResultCard({ item, dispatch }) {
   const movieId = item.wikidata_id || item.id;
+  const encodedId = encodeMovieId(movieId);
   return (
     <Col key={item.id} xl={3} lg={6} sm={12} className="movie-col">
       <Link
-        href={`/movie/${movieId}`}
+        href={`/movie/${encodedId}`}
         style={{ textDecoration: 'none' }}
         onClick={() => {
-          dispatch(getLocations(movieId, item));
+          dispatch(getLocations(encodedId, item));
         }}
       >
         <article className="card movie-card">

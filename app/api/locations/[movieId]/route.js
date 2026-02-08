@@ -6,6 +6,7 @@
 import { NextResponse } from 'next/server';
 import axios from 'axios';
 import { verifyImdbToken } from '@/lib/imdbToken';
+import { decodeMovieId } from '@/lib/movieId';
 import {
   pickFirstClaimValue,
   commonsImageUrl,
@@ -132,12 +133,14 @@ export async function GET(request, { params }) {
       });
     }
 
+    const rawId = decodeMovieId(movieId) || movieId;
+
     let titleRef;
     let wikidataMeta = null;
     let entity = null;
-    if (isWikidataId(movieId)) {
+    if (isWikidataId(rawId)) {
       try {
-        entity = await fetchWikidataEntity(movieId);
+        entity = await fetchWikidataEntity(rawId);
         if (!entity) {
           return NextResponse.json({ locations: 'location not found' });
         }
@@ -153,8 +156,8 @@ export async function GET(request, { params }) {
         });
       }
     } else {
-      const decoded = verifyImdbToken(movieId);
-      titleRef = decoded?.imdbId || movieId;
+      const decoded = verifyImdbToken(rawId);
+      titleRef = decoded?.imdbId || rawId;
     }
 
     const isTitleRef = typeof titleRef === 'string' && /^tt\d+$/.test(titleRef);
@@ -189,6 +192,8 @@ export async function GET(request, { params }) {
     let resolvedTitle =
       titleObj.titleText?.text ||
       titleObj.originalTitleText?.text ||
+      (typeof titleObj.title === 'string' ? titleObj.title : null) ||
+      (typeof titleObj.name === 'string' ? titleObj.name : null) ||
       getTitleFromEntity(entity) ||
       null;
     if (!resolvedTitle && titleRef) {

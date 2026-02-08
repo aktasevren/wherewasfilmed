@@ -9,7 +9,7 @@ import { IconMovieFilter } from '@/app/components/Icons';
  */
 export default function LogoTitle() {
   return (
-    <Link href="/" className="site-logo-title flex items-center gap-4" aria-label="Where Was Filmed - Go to homepage">
+    <Link href="/" className="site-logo-title flex items-center gap-4" aria-label="Where Was It Filmed - Go to homepage">
       <div className="p-2 bg-[#1111d4] rounded-lg text-white" aria-hidden="true">
         <IconMovieFilter size={24} />
       </div>

@@ -168,10 +168,13 @@ export async function POST(request) {
       );
     }
 
+    const { decodeMovieId } = await import('@/lib/movieId');
+    const storedId = decodeMovieId(movieId) || movieId;
+
     const title = typeof body.title === 'string' ? body.title.slice(0, 80) : '';
 
     await SearchRecord.create({
-      m: movieId,
+      m: storedId,
       t: title,
       at: new Date(),
     });

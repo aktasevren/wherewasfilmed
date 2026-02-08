@@ -3,8 +3,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import { useRouter } from 'next/navigation';
-import { fetchMovies, getLocations } from '@/lib/redux/actions/MovieActions';
+import { getLocations } from '@/lib/redux/actions/MovieActions';
 import { getAlertify } from '@/lib/alertify';
+import { encodeMovieId } from '@/lib/movieId';
 import { Row, Col, Button, Form, InputGroup } from 'react-bootstrap';
 import { IconSearch, IconArrowForward, IconExpandMore } from '@/app/components/Icons';
 
@@ -201,7 +202,6 @@ export default function Searchbar({ variant }) {
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    setShowDropdown(false);
     if (!inputText?.trim()) {
       const alertify = await getAlertify();
       if (alertify) {
@@ -210,8 +210,7 @@ export default function Searchbar({ variant }) {
       }
       return;
     }
-    dispatch(fetchMovies(inputText.trim()));
-    router.push(`/search/${encodeURIComponent(inputText.trim())}`);
+    setShowDropdown(true);
   };
 
   const onSelectSuggestion = (item) => {
@@ -220,8 +219,9 @@ export default function Searchbar({ variant }) {
     setMovies([]);
     setSeries([]);
     const id = item.wikidata_id || item.id;
-    dispatch(getLocations(id, item));
-    router.push(`/movie/${id}`);
+    const encoded = encodeMovieId(id);
+    dispatch(getLocations(encoded, item));
+    router.push(`/movie/${encoded}`);
   };
 
   const handleBlur = () => {

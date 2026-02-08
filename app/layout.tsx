@@ -6,15 +6,15 @@ import "alertifyjs/build/css/alertify.css";
 import "leaflet/dist/leaflet.css";
 import StoreProvider from "@/lib/redux/StoreProvider";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://where-was-filmed.vercel.app';
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://wherewasfilmed.com';
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Where Was Filmed - Movie & Series Filming Locations on Map",
-    template: "%s | Where Was Filmed"
+    default: "Where Was It Filmed - Movie Filming Locations on Map",
+    template: "%s | Where Was It Filmed"
   },
-  description: "Discover where your favorite movies and series were filmed. Find every filming location on an interactive map — search by title and explore where it was shot.",
+  description: "Discover where your favorite movies were filmed. Find every filming location on an interactive map — search by title and explore where it was shot.",
   keywords: [
     "movie filming locations",
     "film locations",
@@ -41,21 +41,21 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: siteUrl,
-    siteName: "Where Was Filmed",
-    title: "Where Was Filmed - Movie & Series Filming Locations on Map",
-    description: "Discover where your favorite movies and series were filmed. Find every filming location on an interactive map.",
+    siteName: "Where Was It Filmed",
+    title: "Where Was It Filmed - Movie Filming Locations on Map",
+    description: "Discover where your favorite movies were filmed. Find every filming location on an interactive map.",
     images: [
       {
         url: "/assets/film.png",
         width: 1200,
         height: 630,
-        alt: "Where Was Filmed - Movie & Series Filming Locations",
+        alt: "Where Was It Filmed - Movie Filming Locations",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Where Was Filmed - Movie & Series Filming Locations on Map",
+    title: "Where Was It Filmed - Movie Filming Locations on Map",
     description: "Discover where your favorite movies were filmed! Find exact filming locations on an interactive map.",
     images: ["/assets/film.png"],
     creator: "@aktasevren",
@@ -96,7 +96,7 @@ export default function RootLayout({
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    "name": "Where Was Filmed",
+    "name": "Where Was It Filmed",
     "description": "Discover where your favorite movies were filmed! Find exact filming locations on an interactive map.",
     "url": siteUrl,
     "applicationCategory": "EntertainmentApplication",
@@ -117,7 +117,7 @@ export default function RootLayout({
     },
     "publisher": {
       "@type": "Organization",
-      "name": "Where Was Filmed",
+      "name": "Where Was It Filmed",
       "logo": {
         "@type": "ImageObject",
         "url": `${siteUrl}/assets/film.png`
@@ -127,7 +127,6 @@ export default function RootLayout({
       "Find movie filming locations",
       "Interactive map with markers",
       "Search movies by title",
-      "Search movies and series",
       "Detailed location information"
     ]
   };

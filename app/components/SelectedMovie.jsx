@@ -12,7 +12,6 @@ import {
   IconSchedule,
   IconNorthEast,
   IconRefresh,
-  IconShare,
 } from '@/app/components/Icons';
 
 import 'react-leaflet-cluster/dist/assets/MarkerCluster.css';
@@ -197,9 +196,14 @@ const LocationLoading = ({
             </div>
             <div className="space-y-5">
               {noLocations ? (
-                <h1 className="text-white text-3xl sm:text-4xl md:text-5xl font-bold tracking-tighter px-2">
-                  No locations found. Redirecting in {redirectCountdown ?? 5}s…
-                </h1>
+                <>
+                  <h1 className="text-white text-3xl sm:text-4xl md:text-5xl font-bold tracking-tighter px-2">
+                    No filming locations found
+                  </h1>
+                  <p className="text-white/70 text-lg sm:text-xl font-medium px-2">
+                    Redirecting to homepage in {redirectCountdown ?? 5} second{(redirectCountdown ?? 5) === 1 ? '' : 's'}…
+                  </p>
+                </>
               ) : (
                 <>
                   <h1 className="text-white text-3xl sm:text-4xl md:text-5xl font-bold tracking-tighter px-2">
@@ -369,7 +373,7 @@ function SelectedMovie({ onLoadingChange }) {
     >
       {!showMap || coordinates.length === 0 ? (
         <LocationLoading
-          title={movieDetails?.title || movieDetails?.original_title}
+          title={movieDetails?.title || movieDetails?.original_title || 'Filming Locations'}
           noLocations={showMap && noLocations}
           redirectCountdown={redirectCountdown}
         />
@@ -383,7 +387,7 @@ function SelectedMovie({ onLoadingChange }) {
                 Featured Production
               </div>
               <h1 className="text-2xl sm:text-3xl md:text-[1.75rem] font-semibold leading-tight text-white mb-4 tracking-tight">
-                {movieDetails?.title || movieDetails?.original_title || 'Unknown Title'}
+                {movieDetails?.title || movieDetails?.original_title || 'Filming Locations'}
               </h1>
               <div className="flex flex-wrap items-center gap-3 mb-6">
                 {movieDetails?.wikidataMeta?.year != null && (
@@ -437,25 +441,6 @@ function SelectedMovie({ onLoadingChange }) {
               })}
             </div>
 
-            <div className="p-8 bg-[#0d0d0d]/40 border-t border-white/5">
-              <button
-                type="button"
-                className="w-full flex items-center justify-center gap-3 rounded border border-primary py-4 text-[10px] font-bold tracking-[0.2em] text-primary uppercase hover:bg-primary hover:text-[#0a0a0a] transition-all shadow-[0_0_20px_rgba(17,17,212,0.15)]"
-                onClick={() => {
-                  if (navigator.share) {
-                    navigator.share({
-                      title: movieDetails?.title || 'Where Was It Filmed',
-                      url: typeof window !== 'undefined' ? window.location.href : '',
-                    }).catch(() => {});
-                  } else {
-                    if (typeof window !== 'undefined') navigator.clipboard?.writeText(window.location.href);
-                  }
-                }}
-              >
-                <IconShare size={18} />
-                Share Exploration
-              </button>
-            </div>
           </aside>
 
           {/* Harita: sticky wrapper ile sayfa scroll ederken ekranda sabit kalır; kontroller harita alanı içinde */}
@@ -559,7 +544,7 @@ function SelectedMovie({ onLoadingChange }) {
                 <div className="absolute top-6 left-1/2 -translate-x-1/2 z-[1100]">
               <div className="bg-[#0a0a0a]/60 backdrop-blur-md border border-white/10 rounded-full px-6 py-2.5 flex items-center gap-5 shadow-xl">
                 <span className="text-[10px] font-medium tracking-widest text-white/60 uppercase">
-                  Exploring: <span className="text-primary font-bold">{movieDetails?.title || movieDetails?.original_title || 'Locations'}</span>
+                  Exploring: <span className="text-primary font-bold">{movieDetails?.title || movieDetails?.original_title || 'Filming Locations'}</span>
                 </span>
                 <div className="h-3 w-px bg-white/10" aria-hidden />
                 <button

@@ -1,8 +1,9 @@
 import { MetadataRoute } from 'next';
 import { connect } from '@/lib/db/mongo';
 import SearchRecord from '@/lib/db/SearchRecord';
+import { encodeMovieId } from '@/lib/movieId';
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://where-was-filmed.vercel.app';
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://wherewasfilmed.com';
 const MAX_MOVIE_ENTRIES = 500;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -33,7 +34,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ]);
 
     const movieEntries = (popular || []).map((item) => ({
-      url: `${siteUrl}/movie/${encodeURIComponent(String(item.movieId))}`,
+      url: `${siteUrl}/movie/${encodeMovieId(String(item.movieId))}`,
       lastModified: new Date(),
       changeFrequency: 'weekly' as const,
       priority: 0.7,

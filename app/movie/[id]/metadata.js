@@ -1,10 +1,13 @@
 /**
  * Generate metadata for movie pages. Fetches movie title from Wikidata for dynamic SEO.
+ * URL segment (id) is encoded; we decode to resolve title via Wikidata.
  */
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://where-was-filmed.vercel.app';
+import { decodeMovieId } from '@/lib/movieId';
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://wherewasfilmed.com';
 const WIKIMEDIA_HEADERS = {
-  'User-Agent': 'WhereWasFilmed/1.0 (https://where-was-filmed.vercel.app; contact for crawlers)',
+  'User-Agent': 'WhereWasFilmed/1.0 (https://wherewasfilmed.com; contact for crawlers)',
   Accept: 'application/json',
 };
 
@@ -57,11 +60,13 @@ async function getMovieTitle(movieId) {
   return null;
 }
 
-export async function generateMovieMetadata(movieId) {
+export async function generateMovieMetadata(encodedId) {
   const siteUrl = SITE_URL;
   const defaultTitle = 'Filming Locations';
   const defaultDescription =
-    'Discover where your favorite movies and series were filmed. Find every filming location on an interactive map.';
+    'Discover where your favorite movies were filmed. Find every filming location on an interactive map.';
+
+  const movieId = decodeMovieId(encodedId) || encodedId;
 
   try {
     const movieTitle = await getMovieTitle(movieId);
@@ -72,7 +77,7 @@ export async function generateMovieMetadata(movieId) {
       ? `Discover where ${movieTitle} was filmed. See all filming locations on an interactive map — explore where every scene was shot.`
       : defaultDescription;
     const imageUrl = `${siteUrl}/assets/film.png`;
-    const canonicalUrl = `${siteUrl}/movie/${encodeURIComponent(movieId)}`;
+    const canonicalUrl = `${siteUrl}/movie/${encodeURIComponent(encodedId)}`;
     const keywords = [
       movieTitle ? `${movieTitle} filming locations` : 'filming locations',
       'movie filming locations',
@@ -87,10 +92,10 @@ export async function generateMovieMetadata(movieId) {
       description: description.substring(0, 160),
       keywords,
       openGraph: {
-        title: `${title} | Where Was Filmed`,
+        title: `${title} | Where Was It Filmed`,
         description: description.substring(0, 200),
         url: canonicalUrl,
-        siteName: 'Where Was Filmed',
+        siteName: 'Where Was It Filmed',
         images: [
           {
             url: imageUrl,
@@ -104,7 +109,7 @@ export async function generateMovieMetadata(movieId) {
       },
       twitter: {
         card: 'summary_large_image',
-        title: `${title} | Where Was Filmed`,
+        title: `${title} | Where Was It Filmed`,
         description: description.substring(0, 200),
         images: [imageUrl],
       },
@@ -123,7 +128,7 @@ export async function generateMovieMetadata(movieId) {
       title: defaultTitle,
       description: defaultDescription,
       alternates: {
-        canonical: movieId ? `${siteUrl}/movie/${encodeURIComponent(movieId)}` : siteUrl,
+        canonical: encodedId ? `${siteUrl}/movie/${encodeURIComponent(encodedId)}` : siteUrl,
       },
     };
   }

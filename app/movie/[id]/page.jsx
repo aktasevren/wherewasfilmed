@@ -26,7 +26,7 @@ export default function MoviePage() {
   }, [movieId, dispatch]);
 
   // Generate JSON-LD structured data for movie (SEO)
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://where-was-filmed.vercel.app';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://wherewasfilmed.com';
   const jsonLd = movieDetails ? {
     '@context': 'https://schema.org',
     '@type': 'Movie',
