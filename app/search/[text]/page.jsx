@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { useDispatch } from 'react-redux';
-import NavbarComponent from '@/app/components/NavbarComponent';
+import AppHeader from '@/app/components/AppHeader';
 import Searchbar from '@/app/components/Searchbar';
 import SearchedMovies from '@/app/components/SearchedMovies';
 import Footer from '@/app/components/Footer';
@@ -21,9 +21,9 @@ export default function SearchPage() {
   }, [searchText, dispatch]);
 
   return (
-    <div className="App">
-      <NavbarComponent />
-      <main>
+    <div className="min-h-screen flex flex-col bg-[#0a0a0a] text-white">
+      <AppHeader />
+      <main className="pt-24 flex-1">
         <section aria-label="Search movies">
           <Searchbar />
         </section>

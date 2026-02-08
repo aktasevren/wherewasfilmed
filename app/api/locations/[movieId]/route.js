@@ -62,6 +62,34 @@ function getImdbIdFromEntity(entity) {
   return value;
 }
 
+/** Wikidata entity'den İngilizce başlık (label). */
+function getTitleFromEntity(entity) {
+  if (!entity || typeof entity !== 'object') return null;
+  return entity.labels?.en?.value ?? null;
+}
+
+/** IMDb ID (tt...) ile Wikidata SPARQL'den İngilizce film başlığını al. */
+async function fetchTitleByImdbId(imdbId) {
+  if (typeof imdbId !== 'string' || !/^tt\d+$/.test(imdbId)) return null;
+  const query = encodeURIComponent(
+    `SELECT ?label WHERE { ?item wdt:P345 "${imdbId}". ?item rdfs:label ?label. FILTER(LANG(?label) = "en") } LIMIT 1`
+  );
+  try {
+    const res = await axios.get(
+      `https://query.wikidata.org/sparql?query=${query}&format=json`,
+      { headers: WIKIMEDIA_HEADERS, timeout: 8000 }
+    );
+    const bindings = res.data?.results?.bindings;
+    if (Array.isArray(bindings) && bindings[0]?.label?.value) {
+      return bindings[0].label.value;
+    }
+    return null;
+  } catch (err) {
+    console.warn('Wikidata title fetch failed for', imdbId, err.message);
+    return null;
+  }
+}
+
 function buildLocationsServiceUrl(titleRef) {
   if (!LOCATIONS_SERVICE_BASE_URL) return null;
   const operation = 'TitleFilmingLocationsPaginated';
@@ -106,9 +134,10 @@ export async function GET(request, { params }) {
 
     let titleRef;
     let wikidataMeta = null;
+    let entity = null;
     if (isWikidataId(movieId)) {
       try {
-        const entity = await fetchWikidataEntity(movieId);
+        entity = await fetchWikidataEntity(movieId);
         if (!entity) {
           return NextResponse.json({ locations: 'location not found' });
         }
@@ -153,11 +182,21 @@ export async function GET(request, { params }) {
       });
     }
 
-    const locs = response.data.data.title.filmingLocations.edges;
+    const titleObj = response.data.data.title;
+    const locs = titleObj.filmingLocations.edges;
     const end = performance.now();
     const runtime = end - start;
+    let resolvedTitle =
+      titleObj.titleText?.text ||
+      titleObj.originalTitleText?.text ||
+      getTitleFromEntity(entity) ||
+      null;
+    if (!resolvedTitle && titleRef) {
+      resolvedTitle = await fetchTitleByImdbId(titleRef);
+    }
 
     const body = { locations: locs, runtime };
+    if (resolvedTitle) body.title = resolvedTitle;
     if (wikidataMeta) body.wikidataMeta = wikidataMeta;
 
     return NextResponse.json(body);

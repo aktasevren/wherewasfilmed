@@ -1,58 +1,160 @@
 'use client';
 
-import NavbarComponent from './components/NavbarComponent';
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import Searchbar from './components/Searchbar';
-import Footer from './components/Footer';
+import AppHeader from './components/AppHeader';
+import { IconTrendingUp, IconLocationOn, IconVideocam } from './components/Icons';
 
 export default function Home() {
+  const [popular, setPopular] = useState([]);
+
+  useEffect(() => {
+    fetch('/api/searches?type=popular&limit=8')
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data.popular)) setPopular(data.popular);
+      })
+      .catch(() => {});
+  }, []);
+
+  const trendingItems = (popular || []).map((item) => {
+    const rawTitle = item.title?.trim();
+    const displayTitle =
+      rawTitle && rawTitle !== 'Unknown title' ? rawTitle : (item.movieId || '');
+    return {
+      title: displayTitle,
+      href: `/movie/${encodeURIComponent(item.movieId)}`,
+    };
+  });
+
   return (
-    <div className="App">
-      <NavbarComponent />
-      <main className="home-main">
-        <section className="home-hero" aria-label="Discover filming locations">
-          <div className="home-hero-content">
-            <p className="home-hero-tagline">
-              Discover where your favorite movies and series were filmed — explore every location on an interactive map.
+    <div className="home-page bg-background-dark text-white selection:bg-primary/30 min-h-screen flex flex-col">
+      <AppHeader />
+
+      <main className="pt-24 flex-1">
+        <section className="relative min-h-[60vh] flex flex-col items-center justify-center px-6 overflow-hidden py-20">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px] -z-10" />
+          <div className="text-center mb-12 max-w-3xl">
+            <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-b from-white to-white/60 leading-tight">
+              Discover where the magic happened.
+            </h1>
+            <p className="text-white/40 text-lg md:text-xl font-light">
+              Explore real-life filming locations from thousands of movies and TV shows across the globe.
             </p>
-            <div className="home-hero-search">
-              <Searchbar />
-            </div>
-            <div className="home-hero-hint">
-              <span className="home-hero-hint-icon" aria-hidden="true">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="11" cy="11" r="8"/>
-                  <path d="m21 21-4.35-4.35"/>
-                </svg>
-              </span>
-              Search for a movie or series, then see all filming locations on the map
-            </div>
           </div>
-          <div className="home-hero-visual" aria-hidden="true">
-            <div className="home-hero-visual-map">
-              <svg width="120" height="80" viewBox="0 0 120 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="10" y="10" width="100" height="60" rx="4" stroke="currentColor" strokeWidth="1.5" fill="rgba(159, 211, 199, 0.06)"/>
-                <circle cx="35" cy="35" r="4" fill="currentColor" opacity="0.8"/>
-                <circle cx="70" cy="45" r="4" fill="currentColor" opacity="0.8"/>
-                <circle cx="85" cy="28" r="4" fill="currentColor" opacity="0.8"/>
-                <path d="M35 35 L70 45 L85 28" stroke="currentColor" strokeWidth="1" strokeDasharray="4 2" opacity="0.5"/>
-              </svg>
+
+          <Searchbar variant="hero" />
+
+          {trendingItems.length > 0 && (
+            <div className="w-full max-w-6xl">
+              <div className="flex items-center justify-center gap-2 mb-8">
+                <span className="text-accent-gold">
+                  <IconTrendingUp size={28} className="text-2xl" />
+                </span>
+                <h3 className="text-sm font-bold uppercase tracking-[0.3em] text-white/60">Trending Searches</h3>
+              </div>
+              <div className="flex flex-wrap justify-center gap-4 px-4 pb-4">
+                {trendingItems.map((item) => (
+                  <Link
+                    key={item.href + item.title}
+                    href={item.href}
+                    className="flex-none flex items-center gap-3 bg-primary/10 hover:bg-primary/20 border border-primary/30 rounded-full pl-4 pr-8 py-4 cursor-pointer transition-all group chip-glow no-underline text-white"
+                  >
+                    <span className="text-primary group-hover:scale-110 transition-transform inline-flex">
+                      <IconLocationOn size={28} />
+                    </span>
+                    <span className="text-lg font-medium">{item.title}</span>
+                  </Link>
+                ))}
+              </div>
             </div>
-            <div className="home-hero-visual-film">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/>
-                <line x1="7" y1="2" x2="7" y2="22"/>
-                <line x1="17" y1="2" x2="17" y2="22"/>
-                <line x1="2" y1="12" x2="22" y2="12"/>
-                <line x1="2" y1="7" x2="7" y2="7"/>
-                <line x1="2" y1="17" x2="7" y2="17"/>
-                <line x1="17" y1="17" x2="22" y2="17"/>
-                <line x1="17" y1="7" x2="22" y2="7"/>
-              </svg>
+          )}
+        </section>
+
+        <section className="max-w-7xl mx-auto px-6 py-24 border-t border-white/5">
+          <div className="grid md:grid-cols-12 gap-12 items-center">
+            <div className="md:col-span-6 space-y-8">
+              <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-1.5 rounded-full border border-primary/20">
+                <span className="text-xs font-bold uppercase tracking-widest">Global Community</span>
+              </div>
+              <h2 className="text-sm md:text-base font-bold leading-tight">
+                Join 50k+ users who have discovered 12,000+ filming locations.
+              </h2>
+              <p className="text-white/50 text-xl leading-relaxed">
+                Our community is the heart of the discovery experience. From the neon streets of Tokyo to the rolling
+                hills of New Zealand, thousands of film enthusiasts are mapping cinematic history together.
+              </p>
+              <div className="grid grid-cols-2 gap-8 pt-4">
+                <div className="space-y-2">
+                  <p className="text-3xl font-bold text-accent-gold">12k+</p>
+                  <p className="text-sm text-white/40 uppercase tracking-widest">Verified Locations</p>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-3xl font-bold text-accent-gold">50k+</p>
+                  <p className="text-sm text-white/40 uppercase tracking-widest">Active Members</p>
+                </div>
+              </div>
+            </div>
+            <div className="md:col-span-6 relative group">
+              <div className="aspect-[4/3] rounded-3xl overflow-hidden border border-white/10 relative shadow-2xl">
+                <div
+                  className="absolute inset-0 bg-cover bg-center grayscale contrast-[1.2] brightness-50"
+                  style={{
+                    backgroundImage:
+                      "url('https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=2000')",
+                  }}
+                  aria-hidden
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-background-dark via-transparent to-transparent opacity-60" />
+                <div className="absolute inset-0 map-vignette pointer-events-none" />
+                <div className="absolute top-1/4 left-1/3">
+                  <div className="relative flex flex-col items-center group/pin cursor-pointer">
+                    <div className="bg-accent-gold p-1.5 rounded-full shadow-[0_0_20px_rgba(212,175,55,0.6)] text-black">
+                      <IconVideocam size={18} />
+                    </div>
+                    <div className="absolute top-10 bg-black/80 backdrop-blur-md border border-white/10 px-3 py-1 rounded-lg">
+                      <span className="text-[10px] font-bold whitespace-nowrap">Skyfall - London</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="absolute top-1/2 left-2/3">
+                  <div className="relative flex flex-col items-center group/pin cursor-pointer">
+                    <div className="bg-accent-gold p-1.5 rounded-full shadow-[0_0_20px_rgba(212,175,55,0.6)] text-black">
+                      <IconVideocam size={18} />
+                    </div>
+                    <div className="absolute top-10 bg-black/80 backdrop-blur-md border border-white/10 px-3 py-1 rounded-lg">
+                      <span className="text-[10px] font-bold whitespace-nowrap">The King&apos;s Speech</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="absolute bottom-1/3 left-1/4">
+                  <div className="relative flex flex-col items-center group/pin cursor-pointer">
+                    <div className="bg-accent-gold p-1.5 rounded-full shadow-[0_0_20px_rgba(212,175,55,0.6)] text-black">
+                      <IconVideocam size={18} />
+                    </div>
+                    <div className="absolute top-10 bg-black/80 backdrop-blur-md border border-white/10 px-3 py-1 rounded-lg">
+                      <span className="text-[10px] font-bold whitespace-nowrap">Harry Potter</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
       </main>
-      <Footer />
+
+      <div className="max-w-7xl mx-auto px-6 py-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 opacity-30 hover:opacity-100 transition-opacity">
+        <p className="text-[10px] tracking-[0.2em] uppercase">© 2024 WHERE WAS IT FILMED. ALL RIGHTS RESERVED.</p>
+        <div className="flex gap-8 text-[10px] uppercase tracking-[0.2em]">
+          <a className="hover:text-primary transition-colors text-inherit" href="#">
+            Privacy
+          </a>
+          <a className="hover:text-primary transition-colors text-inherit" href="#">
+            Terms
+          </a>
+        </div>
+      </div>
     </div>
   );
 }
