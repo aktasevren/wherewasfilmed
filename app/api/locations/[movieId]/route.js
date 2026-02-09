@@ -1,12 +1,13 @@
 /**
- * Filming locations API. IMDb is used ONLY here: we need an IMDb title ID (tt...)
- * to call LOCATIONS_SERVICE_BASE_URL (GraphQL). When the client sends a Wikidata ID (Q...),
- * we resolve it to IMDb via Wikidata entity; when they send a token, we verify and use the IMDb ID.
+ * Filming locations API.
+ * 1) Önce geocoded_locations tablosunda bu film (imdb_id) var mı diye bakar; varsa koordinatlı lokasyonları döner (Geoapify/IMDb atlanır).
+ * 2) Yoksa IMDb GraphQL ile lokasyonları alır (client tarafında Geoapify ile geocode edilir).
  */
 import { NextResponse } from 'next/server';
 import axios from 'axios';
 import { verifyImdbToken } from '@/lib/imdbToken';
 import { decodeMovieId } from '@/lib/movieId';
+import { getGeocodedLocations } from '@/lib/db/pg';
 import {
   pickFirstClaimValue,
   commonsImageUrl,
@@ -120,13 +121,6 @@ export async function GET(request, { params }) {
   const { movieId } = await params;
 
   try {
-    if (!LOCATIONS_SERVICE_BASE_URL) {
-      return NextResponse.json(
-        { error: 'Locations service not configured' },
-        { status: 503 }
-      );
-    }
-
     if (typeof movieId !== 'string' || !movieId) {
       return NextResponse.json({
         locations: 'location not found',
@@ -167,6 +161,33 @@ export async function GET(request, { params }) {
       });
     }
 
+    // Önce geocoded_locations tablosunda bu imdb_id var mı kontrol et (osm-geocoder çıktısı)
+    const geocodedList = await getGeocodedLocations(titleRef);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[locations] rawId=${rawId} titleRef=${titleRef} geocodedList=${geocodedList == null ? 'null' : geocodedList.length + ' rows'}`);
+    }
+    if (geocodedList && geocodedList.length > 0) {
+      const end = performance.now();
+      let resolvedTitle = getTitleFromEntity(entity) || null;
+      if (!resolvedTitle) resolvedTitle = await fetchTitleByImdbId(titleRef);
+      const body = {
+        fromGeocodedDb: true,
+        locations: geocodedList,
+        runtime: end - start,
+      };
+      if (resolvedTitle) body.title = resolvedTitle;
+      if (wikidataMeta) body.wikidataMeta = wikidataMeta;
+      const res = NextResponse.json(body);
+      res.headers.set('Cache-Control', 'no-store, max-age=0');
+      return res;
+    }
+    if (!LOCATIONS_SERVICE_BASE_URL) {
+      return NextResponse.json(
+        { error: 'Locations service not configured' },
+        { status: 503 }
+      );
+    }
+
     const serviceUrl = buildLocationsServiceUrl(titleRef);
     if (!serviceUrl) {
       return NextResponse.json(
@@ -204,10 +225,18 @@ export async function GET(request, { params }) {
     if (resolvedTitle) body.title = resolvedTitle;
     if (wikidataMeta) body.wikidataMeta = wikidataMeta;
 
-    return NextResponse.json(body);
+    const res = NextResponse.json(body);
+    res.headers.set('Cache-Control', 'no-store, max-age=0');
+    return res;
   } catch (error) {
     if (error.response?.status === 404) {
       return NextResponse.json({ locations: 'location not found' });
+    }
+    if (error.response?.status === 429) {
+      return NextResponse.json(
+        { error: 'Too many requests', message: 'Please try again in a few moments.' },
+        { status: 429 }
+      );
     }
     console.error('Error fetching locations:', error.message);
     return NextResponse.json(

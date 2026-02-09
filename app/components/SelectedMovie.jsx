@@ -12,6 +12,7 @@ import {
   IconSchedule,
   IconNorthEast,
   IconRefresh,
+  IconMovieFilter,
 } from '@/app/components/Icons';
 
 import 'react-leaflet-cluster/dist/assets/MarkerCluster.css';
@@ -325,6 +326,7 @@ function SelectedMovie({ onLoadingChange }) {
   const movieDetails = useSelector((state) => state.MovieReducer.movieDetails);
   const noMovie = useSelector((state) => state.MovieReducer.noMovie);
   const geocodeProgress = useSelector((state) => state.MovieReducer.geocodeProgress);
+  const locationsSource = useSelector((state) => state.MovieReducer.locationsSource);
 
   const [coordinates, setCoordinates] = useState([]);
   const [showMap, setShowMap] = useState(false);
@@ -429,64 +431,73 @@ function SelectedMovie({ onLoadingChange }) {
         <div className="map-screen flex flex-1 min-h-0 w-full self-stretch">
           {/* Sidebar: yükseklik içeriğe göre; liste uzadıkça sayfa scroll eder */}
           <aside className="map-screen-sidebar map-screen-sidebar--desktop flex flex-col w-full max-w-[380px] flex-shrink-0">
-            <div className="map-screen-featured p-8 border-b border-white/10">
-              <div className="flex items-center gap-3 text-primary text-[10px] font-bold uppercase tracking-[0.3em] mb-5">
-                <span className="h-px w-10 bg-primary" aria-hidden />
-                Featured Production
+            <div className="map-screen-featured p-8 border-b border-white/5">
+              <div className="flex items-center gap-2 mb-6">
+                <IconMovieFilter className="text-primary" size={20} />
+                <span className="text-xs uppercase tracking-widest font-semibold text-primary/80">Cinematic Explorer</span>
               </div>
-              <h1 className="text-2xl sm:text-3xl md:text-[1.75rem] font-semibold leading-tight text-white mb-4 tracking-tight">
+              <h1 className="text-3xl sm:text-4xl font-bold leading-tight text-white mb-4 tracking-tight">
                 {movieDetails?.title || movieDetails?.original_title || 'Filming Locations'}
               </h1>
-              <div className="flex flex-wrap items-center gap-3 mb-6">
-                {movieDetails?.wikidataMeta?.year != null && (
-                  <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary/20 text-primary text-xs font-bold uppercase tracking-wider border border-primary/30">
-                    {movieDetails.wikidataMeta.year}
-                  </span>
-                )}
-                {movieDetails?.wikidataMeta?.duration && (
-                  <span className="inline-flex items-center px-3 py-1 rounded-full bg-white/10 text-white/90 text-xs font-semibold uppercase tracking-wider border border-white/20">
-                    {movieDetails.wikidataMeta.duration}
-                  </span>
-                )}
+              <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-primary text-white text-sm font-medium mb-6">
+                {[movieDetails?.wikidataMeta?.year, movieDetails?.wikidataMeta?.duration].filter(Boolean).join(' • ') || '—'}
               </div>
-              <p className="text-white/80 text-sm leading-relaxed border-l-4 border-primary pl-4 py-1 bg-white/5 rounded-r">
-                {(movieDetails?.wikidataMeta?.description || movieDetails?.overview) || 'No description available.'}
-              </p>
+              <div className="pl-4 border-l-4 border-primary">
+                <p className="text-gray-400 text-sm leading-relaxed">
+                  {(movieDetails?.wikidataMeta?.description || movieDetails?.overview) || 'No description available.'}
+                </p>
+              </div>
             </div>
 
             <div className="map-screen-location-list flex flex-col">
-              <div className="px-4 pt-3 pb-1">
-                <h3 className="text-[10px] font-bold text-primary tracking-[0.25em] flex items-center gap-2 uppercase">
-                  Filming Locations
-                  <span className="h-px flex-1 bg-white/5" aria-hidden />
-                </h3>
+              <div className="map-screen-location-list-header px-4 sm:px-5 pt-4 pb-3 border-b border-white/5">
+                <div className="map-screen-location-list-title text-sm font-semibold uppercase tracking-wider text-white/90">
+                  Filming Locations <span className="text-primary/70 font-bold normal-case ml-1">({coordinates.length})</span>
+                </div>
+                <p className="text-xs text-white/50 mt-1">Tap a location to focus on map</p>
               </div>
-              {coordinates.map((loc, index) => {
-                const locationLine = (loc.formatted || loc.place || 'Location').trim() || 'Location';
-                const desc = loc.desc && loc.desc !== 'No description available' ? loc.desc : null;
-                return (
-                  <button
-                    type="button"
-                    key={`${loc.place}-${index}`}
-                    className="map-screen-location-card group cursor-pointer px-4 py-1.5 w-full text-left"
-                    onClick={() => setFlyToLocationIndex(index)}
-                  >
-                    <div className="flex flex-col gap-0.5">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-[11px] font-semibold text-amber-400/95 group-hover:text-amber-300 transition-colors truncate">
+              <div className="map-screen-location-list-inner px-3 sm:px-4 pb-6 space-y-3">
+                {coordinates.map((loc, index) => {
+                  const locationLine = (loc.formatted || loc.place || 'Location').trim() || 'Location';
+                  const desc = loc.desc && loc.desc !== 'No description available' ? loc.desc : null;
+                  const isActive = flyToLocationIndex === index;
+                  const numStr = String(index + 1).padStart(2, '0');
+                  return (
+                    <button
+                      type="button"
+                      key={`${loc.place}-${index}`}
+                      className={`map-screen-location-card group cursor-pointer w-full text-left rounded-xl border transition-all duration-200 flex gap-3 p-3 sm:p-3.5 touch-manipulation relative overflow-hidden ${
+                        isActive
+                          ? 'bg-primary/20 border-primary active-card-glow'
+                          : 'bg-white/5 border-white/10 hover:border-primary/50 active:bg-primary/10'
+                      }`}
+                      onClick={() => setFlyToLocationIndex(index)}
+                    >
+                      {isActive && <div className="absolute inset-0 bg-primary/5" aria-hidden />}
+                      <span
+                        className={`relative z-10 flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center text-xs font-bold border transition-colors map-screen-location-num ${
+                          isActive
+                            ? 'bg-primary border-primary text-white shadow-md'
+                            : 'bg-amber-500/20 border-amber-500/50 text-amber-400 group-hover:bg-amber-500/30 group-hover:border-amber-400/60'
+                        }`}
+                        aria-hidden
+                      >
+                        {numStr}
+                      </span>
+                      <div className="relative z-10 flex-1 min-w-0 flex flex-col gap-0.5">
+                        <span className="text-sm font-semibold text-white leading-snug line-clamp-2">
                           {locationLine}
                         </span>
-                        <IconNorthEast size={12} className="text-white/20 group-hover:text-primary transition-all flex-shrink-0" />
+                        {desc && (
+                          <p className="text-xs italic text-amber-accent/80 leading-snug line-clamp-2">
+                            {desc}
+                          </p>
+                        )}
                       </div>
-                      {desc && (
-                        <p className="text-[10px] text-amber-400/90 italic leading-tight line-clamp-1">
-                          {desc}
-                        </p>
-                      )}
-                    </div>
-                  </button>
-                );
-              })}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
           </aside>
@@ -591,29 +602,39 @@ function SelectedMovie({ onLoadingChange }) {
                   <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0a]/35 to-transparent" />
                 </div>
                 <div className="map-screen-controls absolute top-6 left-1/2 -translate-x-1/2 z-[1101] hidden md:block">
-                  <div className="bg-[#0a0a0a]/60 backdrop-blur-md border border-white/10 rounded-full px-6 py-2.5 flex items-center gap-5 shadow-xl">
-                    <span className="text-[10px] font-medium tracking-widest text-white/60 uppercase">
-                      Exploring: <span className="text-primary font-bold">{movieDetails?.title || movieDetails?.original_title || 'Filming Locations'}</span>
-                    </span>
-                    <div className="h-3 w-px bg-white/10" aria-hidden />
+                  <div className="glass-pill rounded-full px-6 py-3 flex items-center gap-6 shadow-2xl">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-primary animate-pulse" aria-hidden />
+                      <span className="text-sm font-medium tracking-wide text-white/90">
+                        Exploring: <span className="text-white font-semibold">{movieDetails?.title || movieDetails?.original_title || 'Filming Locations'}</span>
+                      </span>
+                    </div>
+                    <div className="h-4 w-px bg-white/20" aria-hidden />
                     <button
                       type="button"
-                      className="text-[10px] font-bold text-white/30 hover:text-white uppercase tracking-widest transition-colors flex items-center gap-2 pointer-events-auto"
+                      className="flex items-center gap-2 text-sm font-semibold text-white/70 hover:text-primary transition-colors pointer-events-auto"
                       onClick={() => setMapResetTrigger((t) => t + 1)}
                     >
+                      <IconRefresh size={18} />
                       Reset Map
-                      <IconRefresh size={14} />
                     </button>
                   </div>
                 </div>
-                <div className="map-screen-legend absolute top-8 left-8 z-[1101] gap-6 bg-[#0a0a0a]/80 backdrop-blur-xl px-5 py-3 border border-white/5 rounded hidden md:flex">
+                {/* Database Status badge (mockup: glass-pill) */}
+                {locationsSource && (
+                  <div className="map-screen-source absolute top-6 right-6 z-[1101] glass-pill px-4 py-2 rounded-full flex items-center gap-2 hidden md:flex">
+                    <span className="text-[10px] uppercase font-bold tracking-tighter text-white/40">Database Status</span>
+                    <span className="text-[10px] uppercase font-bold tracking-tighter text-primary">Source: {locationsSource === 'db' ? 'DB' : 'Web'}</span>
+                  </div>
+                )}
+                <div className="map-screen-legend absolute top-6 left-6 z-[1101] glass-pill px-4 py-4 rounded-xl flex flex-col gap-3 hidden md:flex">
                   <div className="flex items-center gap-3">
-                    <div className="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_8px_#1111d4]" aria-hidden />
-                    <span className="text-[9px] font-bold text-white/40 uppercase tracking-[0.2em]">Filmed Here</span>
+                    <div className="w-3 h-3 rounded-full bg-primary pin-glow" aria-hidden />
+                    <span className="text-xs font-medium text-white/80">Filmed Here</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="h-1.5 w-1.5 rounded-full bg-white/10" aria-hidden />
-                    <span className="text-[9px] font-bold text-white/40 uppercase tracking-[0.2em]">Region</span>
+                    <div className="w-3 h-3 rounded-full border border-primary bg-primary/20" aria-hidden />
+                    <span className="text-xs font-medium text-white/80">Region Highlight</span>
                   </div>
                 </div>
               </div>

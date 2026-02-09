@@ -304,7 +304,7 @@ body {
   background: radial-gradient(#003, #000);
 }
 
-/* Harita görünümü: yükseklik sidebar içeriğine göre; sayfa scroll eder, harita sticky kalır */
+/* Harita görünümü: Cinematic / glass tarzı (mockup uyumlu) */
 .selected-movie-container--map {
   min-height: 100vh;
   padding: 0;
@@ -312,7 +312,30 @@ body {
   flex-direction: column;
   align-items: stretch;
   justify-content: flex-start;
-  background: #0a0a0a;
+  background: #101022;
+}
+
+/* Glass / cinematic yardımcı sınıflar (harita ekranı) */
+.glass-sidebar {
+  background: rgba(10, 10, 10, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-right: 1px solid rgba(17, 17, 212, 0.2);
+}
+.glass-pill {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.pin-glow {
+  box-shadow: 0 0 20px rgba(17, 17, 212, 0.6);
+}
+.active-card-glow {
+  box-shadow: 0 0 25px rgba(17, 17, 212, 0.4);
+}
+.map-container-gradient {
+  background: radial-gradient(circle at center, #1a1a2e 0%, #050505 100%);
 }
 
 /* Map Screen: sidebar yüksekliği kadar; harita sütunu stretch, içinde sticky harita */
@@ -331,11 +354,12 @@ body {
   min-height: 60vh;
 }
 
-/* Sidebar: yüksekliği içeriğe göre (featured + liste + share); sayfa scroll'unda uzun liste */
+/* Sidebar: glass tarzı (cinematic mockup) */
 .map-screen-sidebar {
-  background: rgba(13, 13, 13, 0.95);
+  background: rgba(10, 10, 10, 0.85);
   backdrop-filter: blur(20px);
-  border-right: 1px solid rgba(17, 17, 212, 0.15);
+  -webkit-backdrop-filter: blur(20px);
+  border-right: 1px solid rgba(17, 17, 212, 0.2);
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   display: flex;
   flex-direction: column;
@@ -348,6 +372,66 @@ body {
   flex: 0 1 auto;
   min-height: 0;
   overflow: visible;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, rgba(8, 8, 16, 0.6) 0%, rgba(5, 5, 12, 0.95) 100%);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.map-screen-location-list-header {
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Global h2 (5.25rem !important) bu blokta uygulanmasın; başlık küçük kalsın */
+.map-screen-location-list-header .map-screen-location-list-title {
+  font-size: 0.875rem !important;
+  line-height: 1.25;
+}
+
+.map-screen-location-list-inner {
+  overflow-y: visible;
+  min-height: 0;
+}
+
+.map-screen-location-list-inner::-webkit-scrollbar {
+  width: 4px;
+}
+
+.map-screen-location-list-inner::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.map-screen-location-list-inner::-webkit-scrollbar-thumb {
+  background: rgba(17, 17, 212, 0.25);
+  border-radius: 999px;
+}
+
+.map-screen-location-list-inner::-webkit-scrollbar-thumb:hover {
+  background: rgba(17, 17, 212, 0.4);
+}
+
+/* Kartlar: inline Tailwind + burada ek vurgu */
+.map-screen-location-card {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Sol taraftaki numara rozeti (01, 02): buton görünümü, amber arka plan */
+.map-screen-location-num {
+  font-size: 0.75rem !important;
+  line-height: 1;
+  min-width: 2.25rem;
+  min-height: 2.25rem;
+}
+
+.map-screen-location-card:active {
+  transform: scale(0.99);
+}
+
+@media (min-width: 769px) {
+  .map-screen-location-card:hover {
+    box-shadow: 0 4px 12px rgba(17, 17, 212, 0.15);
+  }
 }
 
 /* Featured Production: belirgin film alanı */
@@ -355,29 +439,6 @@ body {
   background: linear-gradient(180deg, rgba(17, 17, 212, 0.08) 0%, rgba(10, 10, 10, 0.6) 100%);
   border-bottom: 1px solid rgba(17, 17, 212, 0.2);
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(17, 17, 212, 0.06);
-}
-
-.map-screen-location-list::-webkit-scrollbar {
-  width: 3px;
-}
-
-.map-screen-location-list::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.map-screen-location-list::-webkit-scrollbar-thumb {
-  background: rgba(17, 17, 212, 0.2);
-  border-radius: 999px;
-}
-
-.map-screen-location-card {
-  transition: all 0.2s ease;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.map-screen-location-card:hover {
-  background: rgba(17, 17, 212, 0.04);
-  border-color: rgba(17, 17, 212, 0.2);
 }
 
 /* Harita sütunu: stretch ile sidebar kadar yüksek; içinde sticky harita */
@@ -491,9 +552,15 @@ body {
 
   .map-screen-sidebar--desktop .map-screen-location-list {
     flex: 1 1 auto;
-    overflow-y: auto;
+    overflow: hidden;
     min-height: 80px;
+  }
+
+  .map-screen-sidebar--desktop .map-screen-location-list-inner {
+    flex: 1 1 auto;
+    overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    min-height: 0;
   }
 
   /* Harita alanı: altta, sabit yükseklik (vh) = Leaflet her zaman boyut alır */
