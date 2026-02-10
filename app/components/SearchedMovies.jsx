@@ -70,6 +70,7 @@ export default function SearchedMovies() {
   const dispatch = useDispatch();
   const fMovies = useSelector((state) => state.MovieReducer.fMovies);
   const fMoviesLoading = useSelector((state) => state.MovieReducer.fMoviesLoading);
+  const searchSource = useSelector((state) => state.MovieReducer.searchSource);
 
   const movies = fMovies?.movies ?? [];
   const series = fMovies?.series ?? [];
@@ -101,6 +102,18 @@ export default function SearchedMovies() {
 
   return (
     <Container className="movies-container">
+      {hasResults && searchSource && (
+        <div className="flex justify-end mb-3">
+          <span
+            className={`text-xs font-bold uppercase tracking-wider px-2 py-1 rounded ${
+              searchSource === 'db' ? 'bg-primary/20 text-primary border border-primary/30' : 'bg-white/10 text-white/60 border border-white/10'
+            }`}
+            title={searchSource === 'db' ? 'Sonuçlar yerel veritabanından' : 'Sonuçlar web (Wikidata)'}
+          >
+            Source: {searchSource === 'db' ? 'DB' : 'Web'}
+          </span>
+        </div>
+      )}
       {movies.length > 0 && (
         <div className="searched-section">
           <h2 className="searched-section-title searched-section-title--movie">Movies</h2>

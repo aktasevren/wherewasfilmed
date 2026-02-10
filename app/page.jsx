@@ -73,48 +73,58 @@ export default function Home() {
           <Searchbar variant="hero" />
 
           {trendingItems.length > 0 && (
-            <div className="w-full max-w-6xl">
-              <div className="flex items-center justify-center gap-2 mb-8">
+            <div className="w-full max-w-6xl px-4">
+              <div className="flex items-center justify-center gap-2 mb-3">
                 <span className="text-accent-gold">
-                  <IconTrendingUp size={28} className="text-2xl" />
+                  <IconTrendingUp size={22} className="text-xl" />
                 </span>
-                <h3 className="text-sm font-bold uppercase tracking-[0.3em] text-white/60">Trending Searches</h3>
+                <h3 className="text-xs font-bold uppercase tracking-[0.3em] text-white/60">Trending Searches</h3>
               </div>
-              <div className="flex flex-wrap justify-center gap-4 px-4 pb-4">
-                {trendingItems.map((item) => (
-                  <Link
-                    key={item.href + item.title}
-                    href={item.href}
-                    className="flex-none flex items-center gap-3 bg-primary/10 hover:bg-primary/20 border border-primary/30 rounded-full pl-4 pr-8 py-4 cursor-pointer transition-all group chip-glow no-underline text-white"
-                  >
-                    <span className="text-primary group-hover:scale-110 transition-transform inline-flex">
-                      <IconLocationOn size={28} />
+              <div className="marquee-row py-3">
+                <div className="marquee-inner">
+                  {[...trendingItems, ...trendingItems].map((item, i) => (
+                    <span key={`${item.href}-${item.title}-${i}`} className="marquee-item">
+                      <Link
+                        href={item.href}
+                        className="inline-flex items-center gap-2 bg-primary/10 hover:bg-primary/20 border border-primary/30 rounded-full pl-3 pr-6 py-2 cursor-pointer transition-all chip-glow no-underline text-white text-sm font-medium whitespace-nowrap"
+                      >
+                        <IconLocationOn size={20} className="text-primary flex-shrink-0" />
+                        {item.title}
+                      </Link>
+                      {i < trendingItems.length * 2 - 1 && (
+                        <span className="marquee-sep text-white/40">◆</span>
+                      )}
                     </span>
-                    <span className="text-lg font-medium">{item.title}</span>
-                  </Link>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
           )}
 
           {recentItems.length > 0 && (
-            <div className="w-full max-w-6xl mt-10">
-              <div className="flex items-center justify-center gap-2 mb-6">
+            <div className="w-full max-w-6xl px-4 mt-6">
+              <div className="flex items-center justify-center gap-2 mb-3">
                 <span className="text-white/60">
-                  <IconLocationOn size={22} className="text-xl" />
+                  <IconLocationOn size={18} className="text-lg" />
                 </span>
-                <h3 className="text-sm font-bold uppercase tracking-[0.3em] text-white/50">Recent Searches</h3>
+                <h3 className="text-xs font-bold uppercase tracking-[0.3em] text-white/50">Recent Searches</h3>
               </div>
-              <div className="flex flex-wrap justify-center gap-3 px-4 pb-4">
-                {recentItems.map((item) => (
-                  <Link
-                    key={item.href + item.title}
-                    href={item.href}
-                    className="flex-none flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full pl-3 pr-6 py-2.5 cursor-pointer transition-all no-underline text-white/90 text-sm"
-                  >
-                    <span className="text-lg font-medium truncate max-w-[180px] sm:max-w-[220px]">{item.title}</span>
-                  </Link>
-                ))}
+              <div className="marquee-row py-2">
+                <div className="marquee-inner" style={{ animationDuration: '50s' }}>
+                  {[...recentItems, ...recentItems].map((item, i) => (
+                    <span key={`${item.href}-${item.title}-${i}`} className="marquee-item">
+                      <Link
+                        href={item.href}
+                        className="inline-flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full pl-2.5 pr-5 py-1.5 cursor-pointer transition-all no-underline text-white/90 text-sm font-medium whitespace-nowrap"
+                      >
+                        {item.title}
+                      </Link>
+                      {i < recentItems.length * 2 - 1 && (
+                        <span className="marquee-sep text-white/30">•</span>
+                      )}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
           )}

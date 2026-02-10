@@ -79,6 +79,7 @@ export default function Searchbar({ variant }) {
   const [inputText, setInputText] = useState('');
   const [movies, setMovies] = useState([]);
   const [series, setSeries] = useState([]);
+  const [searchSource, setSearchSource] = useState(null); // 'db' | 'web' — arama kaynağı flag
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [nextContinue, setNextContinue] = useState(null);
@@ -93,6 +94,7 @@ export default function Searchbar({ variant }) {
     if (!query || query.length < MIN_QUERY_LENGTH) {
       setMovies([]);
       setSeries([]);
+      setSearchSource(null);
       setNextContinue(null);
       setShowDropdown(false);
       return;
@@ -110,7 +112,9 @@ export default function Searchbar({ variant }) {
       const newMovies = data?.movies ?? [];
       const newSeries = data?.series ?? [];
       let cont = data?.continue ?? null;
+      const source = data?.source ?? 'web';
 
+      setSearchSource(source);
       setNextContinue(cont);
 
       if (append) {
@@ -164,6 +168,7 @@ export default function Searchbar({ variant }) {
     } catch {
       setMovies([]);
       setSeries([]);
+      setSearchSource(null);
       setNextContinue(null);
       setShowDropdown(false);
     } finally {
@@ -249,6 +254,18 @@ export default function Searchbar({ variant }) {
         <div className="search-suggestions-loading">Loading...</div>
       ) : useGlassDropdown ? (
         <>
+          {hasSuggestions && searchSource && (
+            <div className="px-4 pt-2 pb-1 flex items-center justify-end">
+              <span
+                className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
+                  searchSource === 'db' ? 'bg-primary/20 text-primary border border-primary/30' : 'bg-white/10 text-white/70 border border-white/20'
+                }`}
+                title={searchSource === 'db' ? 'Sonuçlar yerel veritabanından' : 'Sonuçlar web (Wikidata)'}
+              >
+                {searchSource === 'db' ? 'DB' : 'Web'}
+              </span>
+            </div>
+          )}
           <div className="px-4 py-2 max-h-[320px] overflow-y-auto">
             {allSuggestions.map((item) => (
               <SuggestionItem
@@ -278,6 +295,18 @@ export default function Searchbar({ variant }) {
         </>
       ) : (
         <>
+          {hasSuggestions && searchSource && (
+            <div className="px-3 py-1.5 flex items-center justify-end border-b border-white/10">
+              <span
+                className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
+                  searchSource === 'db' ? 'bg-primary/20 text-primary' : 'bg-white/10 text-white/60'
+                }`}
+                title={searchSource === 'db' ? 'Yerel veritabanı' : 'Web (Wikidata)'}
+              >
+                {searchSource === 'db' ? 'DB' : 'Web'}
+              </span>
+            </div>
+          )}
           {movies.length > 0 && (
             <div className="search-suggestions-section">
               <h3 className="search-suggestions-section-title search-suggestions-section-title--movie">Movies</h3>

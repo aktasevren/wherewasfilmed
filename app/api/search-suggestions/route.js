@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import axios from 'axios';
 import { createImdbToken } from '@/lib/imdbToken';
+import { getMovieTitlesByQuery } from '@/lib/db/pg';
 import {
   WIKIMEDIA_HEADERS,
   pickFirstClaimValue,
@@ -25,12 +26,43 @@ export async function GET(request) {
 
   if (!q) {
     return NextResponse.json(
-      { error: 'Query is required', movies: [], series: [] },
+      { error: 'Query is required', movies: [], series: [], source: null },
       { status: 400 }
     );
   }
 
   try {
+    // Diyagram: önce DB (imdb_dataset title / movie_titles)
+    const dbRows = await getMovieTitlesByQuery(q, searchPageSize);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[search-suggestions] q=%s dbRows=%s', q, dbRows?.length ?? 'null');
+    }
+    if (dbRows && dbRows.length > 0) {
+      const movies = dbRows.map((r) => {
+        const token = createImdbToken(r.tconst) || r.tconst;
+        return {
+          id: token,
+          wikidata_id: null,
+          title: r.primary_title ?? '',
+          original_title: r.original_title ?? r.primary_title ?? '',
+          overview: '',
+          subtitle: '',
+          poster_url: null,
+          poster_path: null,
+          year: r.start_year ?? null,
+          yr: null,
+          type: 'movie',
+        };
+      });
+      return NextResponse.json({
+        movies,
+        series: [],
+        continue: null,
+        source: 'db',
+      });
+    }
+
+    // YOK: Wikidata searchbar servisi
     const movies = [];
     const series = [];
     const nextContinue =
@@ -106,11 +138,16 @@ export async function GET(request) {
       }
     }
 
-    return NextResponse.json({ movies, series, continue: returnedContinue });
+    return NextResponse.json({
+      movies,
+      series,
+      continue: returnedContinue,
+      source: 'web',
+    });
   } catch (error) {
     console.error('Suggestion search error:', error.message);
     return NextResponse.json(
-      { error: 'Search failed', movies: [], series: [] },
+      { error: 'Search failed', movies: [], series: [], source: null },
       { status: 500 }
     );
   }

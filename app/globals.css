@@ -51,6 +51,57 @@
   line-height: 1.2 !important;
 }
 
+/* Homepage: sinematik kayan yazı (marquee) — trending & recent */
+.marquee-row {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    black 8%,
+    black 92%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    black 8%,
+    black 92%,
+    transparent 100%
+  );
+}
+.marquee-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  white-space: nowrap;
+  animation: marquee 45s linear infinite;
+  will-change: transform;
+}
+.marquee-inner:hover {
+  animation-play-state: paused;
+}
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+.marquee-item {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+.marquee-sep {
+  margin: 0 0.75rem;
+  opacity: 0.5;
+  user-select: none;
+  pointer-events: none;
+}
+
 /* Homepage hero / trending (Tailwind-style) */
 .hero-glow {
   box-shadow: 0 0 60px -15px rgba(17, 17, 212, 0.4);
