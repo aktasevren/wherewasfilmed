@@ -25,37 +25,56 @@ export default function MoviePage() {
     }
   }, [movieId, dispatch]);
 
-  // Generate JSON-LD structured data for movie (SEO)
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://wherewasfilmed.com';
-  const jsonLd = movieDetails ? {
-    '@context': 'https://schema.org',
-    '@type': 'Movie',
-    name: movieDetails.title || movieDetails.original_title,
-    description: movieDetails.overview || undefined,
-    image: movieDetails.poster_url || `${siteUrl}/assets/film.png`,
-    ...(movieDetails.wikidataMeta?.year && { datePublished: String(movieDetails.wikidataMeta.year) }),
-    ...(movieInfos && movieInfos.length > 0 && {
-      contentLocation: movieInfos
-        .map((location) => ({
-          '@type': 'Place',
-          name: location.place,
-          ...(location.Ycoor != null && location.Xcoor != null && {
-            geo: { '@type': 'GeoCoordinates', latitude: location.Ycoor, longitude: location.Xcoor },
+  const movieTitle = movieDetails?.title || movieDetails?.original_title;
+  const sanitizeJsonLd = (obj) => JSON.stringify(obj).replace(/</g, '\\u003c').replace(/>/g, '\\u003e');
+
+  const movieLd = movieDetails
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'Movie',
+        name: movieTitle,
+        description: movieDetails.overview || undefined,
+        image: movieDetails.poster_url || `${siteUrl}/assets/film.png`,
+        ...(movieDetails.wikidataMeta?.year && { datePublished: String(movieDetails.wikidataMeta.year) }),
+        ...(movieInfos &&
+          movieInfos.length > 0 && {
+            contentLocation: movieInfos
+              .map((loc) => ({
+                '@type': 'Place',
+                name: loc.place,
+                ...(loc.Ycoor != null &&
+                  loc.Xcoor != null && {
+                    geo: { '@type': 'GeoCoordinates', latitude: loc.Ycoor, longitude: loc.Xcoor },
+                  }),
+                ...(loc.desc &&
+                  loc.desc !== 'No description available' && { description: loc.desc }),
+              }))
+              .filter((l) => l.geo),
           }),
-          ...(location.desc && location.desc !== 'No description available' && { description: location.desc }),
-        }))
-        .filter((loc) => loc.geo),
-    }),
-  } : null;
+      }
+    : null;
+
+  const breadcrumbLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: siteUrl },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: movieTitle ? `${movieTitle} Filming Locations` : 'Filming Locations',
+        item: `${siteUrl}/movie/${movieId}`,
+      },
+    ],
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-[#080810] text-white">
-      {jsonLd && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
+      {movieLd && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: sanitizeJsonLd(movieLd) }} />
       )}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: sanitizeJsonLd(breadcrumbLd) }} />
       <AppHeader />
       {/* pt-24 (6rem) header için; main yüksekliği içeriğe göre (harita ~380vh) — flex:1 yok ki büyüsün */}
       <main className="pt-24 flex flex-col min-h-0 flex-shrink-0">

@@ -108,7 +108,7 @@ export default function SearchedMovies() {
             className={`text-xs font-bold uppercase tracking-wider px-2 py-1 rounded ${
               searchSource === 'db' ? 'bg-primary/20 text-primary border border-primary/30' : 'bg-white/10 text-white/60 border border-white/10'
             }`}
-            title={searchSource === 'db' ? 'Sonuçlar yerel veritabanından' : 'Sonuçlar web (Wikidata)'}
+            title={searchSource === 'db' ? 'Results from local database' : 'Results from web (Wikidata)'}
           >
             Source: {searchSource === 'db' ? 'DB' : 'Web'}
           </span>

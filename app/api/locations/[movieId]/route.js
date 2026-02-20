@@ -144,7 +144,9 @@ export async function GET(request, { params }) {
         }
         wikidataMeta = buildWikidataMeta(entity);
       } catch (err) {
-        console.error('Wikidata entity fetch error:', err.message);
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('Wikidata entity fetch error:', err.message);
+        }
         return NextResponse.json({
           locations: 'location not found',
         });

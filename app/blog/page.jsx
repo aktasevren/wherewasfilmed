@@ -12,59 +12,64 @@ export default function BlogIndexPage() {
     <div className="home-page bg-background-dark text-white min-h-screen flex flex-col">
       <AppHeader />
       <main className="pt-24 flex-1">
-        <section className="max-w-5xl mx-auto px-6 py-12 md:py-16">
-          <header className="mb-10 text-center">
-            <p className="text-[10px] uppercase tracking-[0.28em] text-primary/80 mb-3">
+        <div className="blog-hero relative overflow-hidden border-b border-white/5">
+          <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent pointer-events-none" aria-hidden />
+          <section className="relative max-w-4xl mx-auto px-6 py-16 md:py-20 text-center">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-amber-400/90 mb-4">
               Blog
             </p>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight mb-4">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-white mb-5 leading-tight">
               Film Locations &amp; Movie Travel Guides
             </h1>
-            <p className="text-white/60 text-sm sm:text-base max-w-2xl mx-auto">
+            <p className="text-white/70 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
               Deep dives into iconic filming locations, set‑jetting tips and behind‑the‑scenes stories
               from the world of movie geography.
             </p>
-          </header>
+          </section>
+        </div>
 
-          <section aria-label="Blog articles" className="grid gap-6 md:gap-8">
+        <section className="max-w-6xl mx-auto px-6 py-12 md:py-16" aria-label="Blog articles">
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {posts.map((post) => (
               <article
                 key={post.slug}
-                className="border border-white/10 rounded-xl px-5 py-5 md:px-6 md:py-6 bg-white/[0.02] hover:bg-white/[0.04] transition-colors"
+                className="blog-card group rounded-2xl border border-white/10 bg-white/[0.02] overflow-hidden hover:border-white/20 hover:bg-white/[0.04] transition-all duration-300"
               >
-                <header className="mb-3">
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-white/40 mb-1">
-                    {new Date(post.date).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'short',
-                      day: '2-digit',
-                    })}{' '}
-                    · {post.readingTime}
-                  </p>
-                  <h2 className="text-xl md:text-2xl font-semibold mb-2">
-                    <Link
-                      href={`/blog/${post.slug}`}
-                      className="hover:text-primary transition-colors no-underline"
-                    >
+                <Link href={`/blog/${post.slug}`} className="block h-full flex flex-col">
+                  <div className="blog-card-image h-40 bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                    <span className="text-5xl opacity-40 group-hover:opacity-60 transition-opacity" aria-hidden>
+                      🎬
+                    </span>
+                  </div>
+                  <div className="p-5 md:p-6 flex flex-col flex-1">
+                    <p className="text-[11px] font-medium uppercase tracking-widest text-white/50 mb-2">
+                      {new Date(post.date).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                      })}{' '}
+                      · {post.readingTime}
+                    </p>
+                    <h2 className="text-lg md:text-xl font-semibold text-white mb-2 line-clamp-2 group-hover:text-primary transition-colors">
                       {post.title}
-                    </Link>
-                  </h2>
-                  <p className="text-white/60 text-sm md:text-base">
-                    {post.description}
-                  </p>
-                </header>
-                {post.tags?.length > 0 && (
-                  <ul className="flex flex-wrap gap-2 mt-3 text-[11px] uppercase tracking-[0.18em] text-white/35">
-                    {post.tags.slice(0, 4).map((tag) => (
-                      <li key={tag} className="px-2 py-1 border border-white/10 rounded-full">
-                        {tag}
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                    </h2>
+                    <p className="text-white/60 text-sm leading-relaxed line-clamp-3 flex-1">
+                      {post.description}
+                    </p>
+                    {post.tags?.length > 0 && (
+                      <ul className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-white/5">
+                        {post.tags.slice(0, 3).map((tag) => (
+                          <li key={tag} className="text-[10px] uppercase tracking-wider text-white/40">
+                            {tag}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </Link>
               </article>
             ))}
-          </section>
+          </div>
         </section>
       </main>
       <Footer />

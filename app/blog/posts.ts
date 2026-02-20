@@ -10,6 +10,55 @@ export type BlogPost = {
 
 export const blogPosts: BlogPost[] = [
   {
+    slug: 'how-to-find-where-any-movie-was-filmed',
+    title: 'How to Find Where Any Movie Was Filmed (Complete Guide)',
+    description:
+      'Step-by-step guide to discovering filming locations for any movie or TV show. Use credits, databases, and interactive maps to track down every spot.',
+    date: '2026-02-10',
+    readingTime: '8 min read',
+    tags: ['how to find filming locations', 'movie locations', 'film research', 'where was it filmed'],
+    body: [
+      'Whether you are planning a set-jetting trip or just curious where a scene was shot, finding filming locations is easier than ever. This guide covers the best methods: from reading end credits and using official databases to interactive maps built for film fans.',
+      'Start with the end credits. Productions often list filming locations, local film commissions, or city names. Note any “Filmed in” or “Location” lines. Studio press kits and IMDb “Filming locations” sections add countries and cities; fan wikis and location databases often have street-level detail.',
+      'Use a dedicated filming-locations map. Where Was It Filmed lets you search any movie or series and see every known location on one map. You can filter by country or region, read scene descriptions, and plan a route. Data is drawn from trusted sources and geocoded so you get real coordinates.',
+      'Cross-check with satellite and street-level imagery. If a source says “bridge in Paris”, pull up the area on a map and compare to the shot. Building shapes, water features, and skyline elements are reliable clues. For recent productions, local news and film-office announcements often name specific streets or landmarks.',
+      'Respect private property and local rules. Many iconic spots are in residential areas or working businesses. Enjoy the view from public space, support local cafés or shops, and leave no trace. Responsible location hunting keeps these places open for future fans.',
+    ],
+  },
+  {
+    slug: 'movie-filming-locations-map-guide',
+    title: 'Movie Filming Locations Map: The Complete Guide for Film Fans',
+    description:
+      'Why interactive maps beat lists for exploring movie locations. How to use filming location maps to plan trips, discover hidden spots, and connect movies to real places.',
+    date: '2026-02-08',
+    readingTime: '6 min read',
+    tags: ['filming locations map', 'movie map', 'film tourism', 'interactive map'],
+    body: [
+      'A list of “where was it filmed” is useful, but a map changes how you explore. You see which locations cluster in one city, which are day trips apart, and how to string them into a road trip or walking tour. This guide is for anyone who wants to use filming location maps like a pro.',
+      'Interactive maps show every pin in geographic context. One film might have 30 locations across three countries; a map instantly reveals the main hubs and outliers. You can zoom into a neighborhood, see pins for a café, a square, and a bridge, and plan a single afternoon that hits all three.',
+      'Filter by country or region when planning a trip. If you are visiting New Zealand, pull up “The Lord of the Rings” and “The Hobbit” and see every Middle-earth spot on one map. Combine that with your travel dates and transport to build a realistic itinerary instead of a wish list.',
+      'Use scene descriptions, not just addresses. Many maps (including Where Was It Filmed) attach a short description to each pin—e.g. “Lars homestead exterior” or “Mos Eisley canyon”. That helps you match the pin to the moment in the film and decide which locations matter most to you.',
+      'Maps also surface lesser-known spots. Big landmarks get all the attention, but smaller streets, parks, and buildings often have the same “I’ve been there” thrill. Browsing a full map lets you discover places you would never find from a top-10 list alone.',
+    ],
+  },
+  {
+    slug: 'film-tourism-best-destinations-movie-fans',
+    title: 'Film Tourism: Best Destinations for Movie Fans in 2025',
+    description:
+      'From New Zealand to Morocco: the best countries and regions for film-inspired travel. Where to go for Lord of the Rings, Bond, Game of Thrones, and more.',
+    date: '2026-02-05',
+    readingTime: '7 min read',
+    tags: ['film tourism', 'movie destinations', 'set-jetting', 'travel'],
+    body: [
+      'Film tourism is one of the fastest-growing travel trends. Fans are building trips around movie and TV locations—and destinations are responding with tours, signage, and preserved sets. Here are the best places to go if you want to walk in the footsteps of your favorite characters.',
+      'New Zealand remains the capital of Middle-earth. Hobbiton, Tongariro, the Remarkables, and dozens of other locations from “The Lord of the Rings” and “The Hobbit” are visitable. Many are on public land or run as official experiences. Combine hiking and driving for a full Tolkien-themed trip.',
+      'Iceland and Ireland have become go-to backdrops for fantasy and sci-fi. “Game of Thrones” shot in both; “Star Wars” and “Interstellar” used Icelandic landscapes. You can join guided location tours or use a filming-locations map to build your own route around glaciers, waterfalls, and lava fields.',
+      'Morocco and Tunisia offer desert and medina settings. “Star Wars” (Tatooine), “Gladiator”, “The Mummy”, and many others filmed here. Matmata’s underground homes and the dunes around Tozeur are iconic. Always check travel advice and respect local culture when visiting.',
+      'Cities like London, New York, Paris, and Tokyo appear in hundreds of films. A “movie map” of one city can fill a week: you move from “Notting Hill” to “Harry Potter” to “James Bond” in a single stay. Use an interactive map to cluster pins and avoid spending your trip on the subway.',
+      'Where Was It Filmed covers thousands of titles and locations worldwide. Search a film, open the map, and filter by country to see the best destinations for your next set-jetting adventure.',
+    ],
+  },
+  {
     slug: 'where-was-the-godfather-filmed',
     title: 'Where Was “The Godfather” Filmed? A Guide to Its Real Locations',
     description:

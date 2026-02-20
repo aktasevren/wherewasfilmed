@@ -11,8 +11,7 @@ import {
   IconMovieFilter,
 } from '@/app/components/Icons';
 
-import 'react-leaflet-cluster/dist/assets/MarkerCluster.css';
-import 'react-leaflet-cluster/dist/assets/MarkerCluster.Default.css';
+import { fetchCountriesGeoJSON, findCountryFeature } from '@/lib/countryGeoJSON';
 
 const MapContainer = dynamic(() => import('react-leaflet').then((mod) => mod.MapContainer), {
   ssr: false,
@@ -23,16 +22,11 @@ const TileLayer = dynamic(() => import('react-leaflet').then((mod) => mod.TileLa
 const Marker = dynamic(() => import('react-leaflet').then((mod) => mod.Marker), {
   ssr: false,
 });
-const CircleMarker = dynamic(() => import('react-leaflet').then((mod) => mod.CircleMarker), {
-  ssr: false,
-});
 const Popup = dynamic(() => import('react-leaflet').then((mod) => mod.Popup), {
   ssr: false,
 });
-const MarkerClusterGroup = dynamic(
-  () => import('react-leaflet-cluster').then((mod) => mod.default),
-  { ssr: false }
-);
+const GeoJSON = dynamic(() => import('react-leaflet').then((mod) => mod.GeoJSON), { ssr: false });
+const Circle = dynamic(() => import('react-leaflet').then((mod) => mod.Circle), { ssr: false });
 
 // Fit map bounds to all markers (runs on mount and when coordinates change)
 const FitBounds = dynamic(
@@ -205,7 +199,22 @@ const DID_YOU_KNOW_CARD = {
   year: 'Filmed in 1976',
 };
 
-// Location Loading — kırmızı sinema perdesi açılır, yükleme çubuğu
+// Tahmini süre: kalan lokasyon * ~2.5 sn (gerçekçi bir oran)
+const ESTIMATED_SEC_PER_LOCATION = 2.5;
+
+function getLoadingMessage(hasProgress, progressPercent, status, stableTotal, processed) {
+  if (!hasProgress || status !== 'running') return 'Preparing your map…';
+  if (progressPercent >= 95) return 'Almost there…';
+  if (progressPercent >= 80) return 'Just a moment…';
+  const remaining = Math.max(0, (stableTotal || 0) - processed);
+  const estimatedSec = Math.ceil(remaining * ESTIMATED_SEC_PER_LOCATION);
+  if (estimatedSec <= 5) return 'Almost there…';
+  if (estimatedSec < 60) return `About ${estimatedSec} seconds left`;
+  const mins = Math.ceil(estimatedSec / 60);
+  return mins === 1 ? 'About a minute left' : `About ${mins} minutes left`;
+}
+
+// Location Loading — sinematik perde + dolan bar, tahmini süre (0/32 yok)
 const LocationLoading = ({
   title,
   noLocations,
@@ -214,54 +223,63 @@ const LocationLoading = ({
 }) => {
   const total = geocodeProgress?.total ?? 0;
   const processed = geocodeProgress?.processed ?? 0;
-  const found = geocodeProgress?.found ?? 0;
-  const hasProgress = total > 0;
-  const progressPercent = hasProgress ? Math.min(100, Math.round((processed / total) * 100)) : 0;
+  const status = geocodeProgress?.status ?? 'idle';
+
+  const stableTotalRef = useRef(0);
+  if (total > 0 && total > stableTotalRef.current) stableTotalRef.current = total;
+  if (status === 'done') stableTotalRef.current = total;
+  const stableTotal = stableTotalRef.current || total;
+
+  const hasProgress = stableTotal > 0;
+  const progressPercent = hasProgress
+    ? Math.min(100, Math.round((processed / stableTotal) * 100))
+    : 0;
+
+  const loadingMessage = getLoadingMessage(hasProgress, progressPercent, status, stableTotal, processed);
 
   return (
-    <div className="fixed inset-0 z-0 bg-[#0c0c0f] overflow-hidden location-loading-screen" aria-busy="true" aria-label="Loading filming locations">
-      {/* Kırmızı sinema perdeleri — ortadan açılır */}
+    <div className="fixed inset-0 z-0 overflow-hidden location-loading-screen" aria-busy="true" aria-label="Loading filming locations">
+      <div className="location-loading-bg" aria-hidden />
+      <div className="location-loading-grain" aria-hidden />
+
       <div className="curtains fixed inset-0 z-30 flex pointer-events-none">
         <div className="curtain curtain-left" aria-hidden />
         <div className="curtain curtain-right" aria-hidden />
       </div>
 
-      {/* Perde arkası: karanlık sahne + yükleme içeriği */}
       <div className="relative z-20 flex flex-col min-h-screen items-center justify-center px-6 py-24">
-        <div className="curtain-content w-full max-w-md flex flex-col items-center gap-10 text-center">
+        <div className="curtain-content w-full max-w-md flex flex-col items-center gap-12 text-center">
           {noLocations ? (
             <>
-              <h1 className="text-xl sm:text-2xl font-semibold text-white tracking-wide">
+              <h1 className="location-loading-title text-xl sm:text-2xl font-semibold text-white tracking-wide">
                 No filming locations found
               </h1>
-              <p className="text-white/60 text-sm">
+              <p className="text-white/50 text-sm">
                 Redirecting in {redirectCountdown ?? 5} second{(redirectCountdown ?? 5) === 1 ? '' : 's'}…
               </p>
             </>
           ) : (
             <>
-              <div className="flex flex-col items-center gap-5 curtain-loading-text w-full max-w-sm">
-                <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-white/50">
-                  Loading filming locations
+              <div className="flex flex-col items-center gap-6 curtain-loading-text w-full max-w-sm">
+                <p className="location-loading-label text-[10px] font-semibold uppercase tracking-[0.35em] text-amber-400/80">
+                  Finding locations
                 </p>
                 {title && (
-                  <h1 className="text-xl sm:text-2xl font-semibold text-white leading-tight text-center line-clamp-3 px-1" title={title}>
+                  <h1 className="location-loading-title text-2xl sm:text-3xl font-medium text-white/95 leading-tight text-center line-clamp-3 px-1" title={title}>
                     {title}
                   </h1>
                 )}
               </div>
-              <div className="w-full space-y-1.5">
-                <div className="curtain-progress-track">
+              <div className="w-full max-w-sm mx-auto space-y-4">
+                <div className="location-loading-bar-track" role="progressbar" aria-valuenow={hasProgress ? progressPercent : undefined} aria-valuemin={0} aria-valuemax={100} aria-label="Loading progress">
                   <div
-                    className={`curtain-progress-bar ${!hasProgress ? 'curtain-progress-bar--indeterminate' : ''}`}
+                    className={`location-loading-bar-fill ${!hasProgress ? 'location-loading-bar-fill--indeterminate' : ''}`}
                     style={hasProgress ? { width: `${progressPercent}%` } : undefined}
                   />
                 </div>
-                {hasProgress && (
-                  <p className="text-[11px] text-white/40">
-                    {found} location{found !== 1 ? 's' : ''} found
-                  </p>
-                )}
+                <p className="location-loading-message text-sm text-white/60">
+                  {loadingMessage}
+                </p>
               </div>
             </>
           )}
@@ -271,13 +289,35 @@ const LocationLoading = ({
   );
 };
 
+// Sınıflandırma: API'den gelen placeType (Geoapify result_type / Nominatim type).
+// Ülke: country → turuncu alan, listede yok
+// Bölge/il/şehir: state, city, locality, district, county + administrative, province → mavi alan, listede yok
+// Spesifik yer: village, suburb, amenity, street vb. → pin + listede göster
+const REGION_TYPES = new Set([
+  'state', 'county', 'city', 'district', 'locality',
+  'administrative', 'region', 'province', 'municipality', 'town',
+]);
+
+function isCountryLevel(loc) {
+  const pt = String(loc?.placeType ?? '').toLowerCase();
+  return pt === 'country';
+}
+
+function isRegionLevel(loc) {
+  const pt = String(loc?.placeType ?? '').toLowerCase();
+  return REGION_TYPES.has(pt);
+}
+
+function showInList(loc) {
+  return !isCountryLevel(loc) && !isRegionLevel(loc);
+}
+
 function SelectedMovie({ onLoadingChange }) {
   const router = useRouter();
   const movieInfos = useSelector((state) => state.MovieReducer.movieInfos);
   const movieDetails = useSelector((state) => state.MovieReducer.movieDetails);
   const noMovie = useSelector((state) => state.MovieReducer.noMovie);
   const geocodeProgress = useSelector((state) => state.MovieReducer.geocodeProgress);
-  const locationsSource = useSelector((state) => state.MovieReducer.locationsSource);
 
   const [coordinates, setCoordinates] = useState([]);
   const [showMap, setShowMap] = useState(false);
@@ -287,32 +327,52 @@ function SelectedMovie({ onLoadingChange }) {
   const minLoadingTime = 10000; // Minimum 10 seconds
   const [redirectCountdown, setRedirectCountdown] = useState(null);
   const containerRef = useRef(null);
+  const [countriesGeoJSON, setCountriesGeoJSON] = useState(null);
   useEffect(() => {
     if (!loadingStartTimeRef.current) loadingStartTimeRef.current = Date.now();
   }, []);
 
+  // Film değiştiğinde hemen önceki filmin noktalarını kaldır ve loading göster
+  const currentMovieId = movieDetails?.id;
   useEffect(() => {
+    if (!currentMovieId) return;
+    setCoordinates([]);
+    setShowMap(false);
+    loadingStartTimeRef.current = Date.now();
+  }, [currentMovieId]);
+
+  // movieInfos güncellenince: boşsa loading, doluysa (geocode bittikten sonra) haritayı aç
+  useEffect(() => {
+    if (movieInfos == null) {
+      setCoordinates([]);
+      setShowMap(false);
+      return;
+    }
+    if (movieInfos.length === 0) {
+      setCoordinates([]);
+      setShowMap(noMovie);
+      return;
+    }
+    let cancelled = false;
     async function processLocations() {
-      // Wait minimum 5 seconds
       const elapsed = Date.now() - (loadingStartTimeRef.current || Date.now());
       const remainingTime = Math.max(0, minLoadingTime - elapsed);
-      
       await new Promise((resolve) => setTimeout(resolve, remainingTime));
-      
-      // Set coordinates
-      if (movieInfos && movieInfos.length > 0) {
-        setCoordinates(movieInfos);
-        setShowMap(true);
-      } else {
-        // Wait minimum time even if no locations found
-        setShowMap(true);
-      }
+      if (cancelled) return;
+      const hasDesc = (loc) => loc.desc && String(loc.desc).trim() !== '' && loc.desc !== 'No description available';
+      const sorted = [...movieInfos].sort((a, b) => {
+        const aHas = hasDesc(a);
+        const bHas = hasDesc(b);
+        if (aHas && !bHas) return -1;
+        if (!aHas && bHas) return 1;
+        return 0;
+      });
+      setCoordinates(sorted);
+      setShowMap(true);
     }
-
-    if (movieInfos) {
-      processLocations();
-    }
-  }, [movieInfos, minLoadingTime]);
+    processLocations();
+    return () => { cancelled = true; };
+  }, [movieInfos, noMovie, minLoadingTime]);
 
   const noLocations =
     Boolean(noMovie) || (geocodeProgress?.status === 'done' && (geocodeProgress?.found ?? 0) === 0);
@@ -321,9 +381,11 @@ function SelectedMovie({ onLoadingChange }) {
     onLoadingChange?.(!showMap);
   }, [showMap, onLoadingChange]);
 
+  // Ana ekrana yönlendir: sadece lokasyon gerçekten yoksa (sayı gösterilip sonra state boşalan race’te redirect etmeyelim)
   useEffect(() => {
     if (!showMap) return;
     if (!noLocations) return;
+    if (coordinates.length > 0) return; // Zaten haritada lokasyon varsa yönlendirme (ikinci istek state’i boşaltmış olabilir)
 
     setTimeout(() => setRedirectCountdown(5), 0);
     const interval = setInterval(() => {
@@ -342,26 +404,47 @@ function SelectedMovie({ onLoadingChange }) {
       clearInterval(interval);
       clearTimeout(timeout);
     };
-  }, [showMap, noLocations, router]);
+  }, [showMap, noLocations, coordinates.length, router]);
+
+  const countryLevelLocs = useMemo(
+    () => (coordinates || []).filter((loc) => isCountryLevel(loc)),
+    [coordinates]
+  );
+  const regionLevelLocs = useMemo(
+    () => (coordinates || []).filter((loc) => isRegionLevel(loc)),
+    [coordinates]
+  );
+  const listItems = useMemo(
+    () => coordinates.map((loc, i) => ({ loc, i })).filter(({ loc }) => showInList(loc)),
+    [coordinates]
+  );
+
+  useEffect(() => {
+    if (countryLevelLocs.length === 0) return;
+    let cancelled = false;
+    fetchCountriesGeoJSON()
+      .then((data) => {
+        if (!cancelled) setCountriesGeoJSON(data);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [countryLevelLocs.length]);
 
   const defaultCenter =
     coordinates.length > 0 && coordinates[0].Ycoor && coordinates[0].Xcoor
       ? [coordinates[0].Ycoor, coordinates[0].Xcoor]
       : [55, 60];
 
-  const markerIconUrl =
-    movieDetails?.wikidataMeta?.logoIcon || movieDetails?.wikidataMeta?.logo || '/assets/film.png';
-
   const exactIcon = useMemo(
     () =>
-      new L.Icon({
-        iconUrl: markerIconUrl,
-        iconSize: [34, 34],
-        iconAnchor: [17, 34],
-        popupAnchor: [0, -30],
-        className: 'exact-film-icon',
+      L.divIcon({
+        className: 'map-dot-marker',
+        html: '<span class="map-dot"></span>',
+        iconSize: [28, 28],
+        iconAnchor: [14, 14],
+        popupAnchor: [0, -14],
       }),
-    [markerIconUrl]
+    []
   );
 
   const isMapView = showMap && coordinates.length > 0;
@@ -423,25 +506,25 @@ function SelectedMovie({ onLoadingChange }) {
                       Filming Locations
                     </h2>
                     <p className="map-screen-location-list-subtitle">
-                      {coordinates.length} location{coordinates.length !== 1 ? 's' : ''} · Tap to focus on map
+                      {listItems.length} location{listItems.length !== 1 ? 's' : ''} · Tap to focus on map
                     </p>
                   </div>
                 </div>
               </div>
               <div className="map-screen-location-list-inner">
-                {coordinates.map((loc, index) => {
+                {listItems.map(({ loc, i }, listIndex) => {
                   const address = (loc.formatted || loc.place || 'Location').trim() || 'Location';
                   const sceneRaw = loc.desc && loc.desc !== 'No description available' ? loc.desc.trim() : null;
-                  const isActive = flyToLocationIndex === index;
-                  const numStr = String(index + 1).padStart(2, '0');
+                  const isActive = flyToLocationIndex === i;
+                  const numStr = String(listIndex + 1).padStart(2, '0');
                   const sameAsAddress = !sceneRaw || address === sceneRaw || sceneRaw === address || address.includes(sceneRaw) || sceneRaw.includes(address);
                   const showTwoLines = sceneRaw && !sameAsAddress;
                   return (
                     <button
                       type="button"
-                      key={`${loc.place}-${index}`}
+                      key={`${loc.place}-${i}`}
                       className={`map-screen-location-card ${isActive ? 'map-screen-location-card--active' : ''}`}
-                      onClick={() => setFlyToLocationIndex(index)}
+                      onClick={() => setFlyToLocationIndex(i)}
                     >
                       <span className="map-screen-location-num" aria-hidden>
                         {numStr}
@@ -484,51 +567,61 @@ function SelectedMovie({ onLoadingChange }) {
                 <FitBounds coordinates={coordinates} />
                 <MapResetControl coordinates={coordinates} resetTrigger={mapResetTrigger} />
                 <MapFlyToLocation coordinates={coordinates} flyToIndex={flyToLocationIndex} />
-                <MarkerClusterGroup chunkedLoading>
-                {coordinates.map((elem, index) => {
-                  const hasPoint = elem != null && elem.Ycoor != null && elem.Xcoor != null;
-                  if (!hasPoint) return null;
-
-                  const hasBbox = Array.isArray(elem.bbox) && elem.bbox.length === 4;
-                  const [minLon, minLat, maxLon, maxLat] = hasBbox ? elem.bbox : [];
-                  const areaSize = hasBbox
-                    ? Math.max(Math.abs(maxLat - minLat), Math.abs(maxLon - minLon))
-                    : 0;
-                  const isBroad =
-                    hasBbox &&
-                    (areaSize >= 2 ||
-                      ['country', 'state', 'region'].includes(String(elem.placeType)));
-
-                  const title = elem.formatted || elem.place;
-
-                  if (isBroad) {
-                    const radius = Math.min(18, Math.max(10, areaSize * 2));
+                {/* 1) Ülke seviyesi: turuncu alan (GeoJSON), listede yok */}
+                {countriesGeoJSON &&
+                  countryLevelLocs.map((loc, idx) => {
+                    const feature = findCountryFeature(countriesGeoJSON, loc);
+                    if (!feature) return null;
                     return (
-                      <CircleMarker
-                        key={`broad-${index}`}
-                        center={[elem.Ycoor, elem.Xcoor]}
-                        radius={radius}
-                        pathOptions={{
-                          color: 'rgb(17, 17, 212)',
-                          fillColor: '#1111d4',
-                          fillOpacity: 0.45,
+                      <GeoJSON
+                        key={`country-${idx}`}
+                        data={feature}
+                        style={{
+                          fillColor: '#e85d04',
+                          fillOpacity: 0.35,
+                          color: '#c24e03',
                           weight: 1,
                         }}
-                      >
-                        <Popup className="custom-popup" closeButton>
-                          <div className="popup-content">
-                            <div className="popup-header">
-                              <h3 className="popup-title">{title}</h3>
-                            </div>
-                            <div className="popup-description">
-                              <p className="popup-text">Broad area — zoom in for details.</p>
-                            </div>
-                          </div>
-                        </Popup>
-                      </CircleMarker>
+                      />
                     );
-                  }
-
+                  })}
+                {/* 2) Bölge/il/şehir: sadece approx area (belli belirsiz daire) */}
+                {regionLevelLocs.map((loc, idx) => {
+                  const hasCoords = loc?.Ycoor != null && loc?.Xcoor != null;
+                  if (!hasCoords) return null;
+                  const name = (loc?.formatted || loc?.place || 'This region').trim();
+                  return (
+                    <Circle
+                      key={`region-approx-${idx}`}
+                      center={[loc.Ycoor, loc.Xcoor]}
+                      radius={35000}
+                      pathOptions={{
+                        fillColor: '#1e3a8a',
+                        fillOpacity: 0.28,
+                        color: '#1e40af',
+                        weight: 1.5,
+                        opacity: 0.6,
+                      }}
+                    >
+                      <Popup className="custom-popup" closeButton>
+                        <div className="popup-content">
+                          <div className="popup-header">
+                            <h3 className="popup-title">{name}</h3>
+                          </div>
+                          <p className="popup-text text-sm text-neutral-500 mt-1">
+                            Filmed somewhere in this area (exact location unknown).
+                          </p>
+                        </div>
+                      </Popup>
+                    </Circle>
+                  );
+                })}
+                {/* 3) Spesifik adresler: marker + listede gösterilir */}
+                {coordinates.map((elem, index) => {
+                  if (!showInList(elem)) return null;
+                  const hasPoint = elem != null && elem.Ycoor != null && elem.Xcoor != null;
+                  if (!hasPoint) return null;
+                  const title = elem.formatted || elem.place;
                   return (
                     <Marker
                       key={`exact-${index}`}
@@ -550,40 +643,32 @@ function SelectedMovie({ onLoadingChange }) {
                     </Marker>
                   );
                 })}
-                </MarkerClusterGroup>
               </MapContainer>
                 </div>
 
-                {/* Overlay: sol tarafta gradient */}
-                <div className="map-screen-overlays absolute inset-0 z-[1100] pointer-events-none hidden md:block">
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0a]/35 to-transparent" />
-                </div>
-                {/* Sağ üst: Reset Map + Database Status */}
-                <div className="absolute top-6 right-6 z-[1101] hidden md:flex items-center gap-3">
+                {/* Üst orta: Reset Map — belirgin ve ortada */}
+                <div className="absolute top-6 left-1/2 -translate-x-1/2 z-[1101] hidden md:block">
                   <button
                     type="button"
-                    className="glass-pill rounded-full px-4 py-2.5 flex items-center gap-2 text-sm font-semibold text-white/80 hover:text-primary transition-colors pointer-events-auto"
+                    className="map-reset-button rounded-full px-6 py-3 flex items-center gap-2.5 text-base font-bold text-white hover:border-primary/50 shadow-lg transition-all pointer-events-auto"
                     onClick={() => setMapResetTrigger((t) => t + 1)}
                   >
-                    <IconRefresh size={18} />
+                    <IconRefresh size={20} />
                     Reset Map
                   </button>
-                  {locationsSource && (
-                    <div className="glass-pill px-3 py-2 rounded-full flex items-center gap-2">
-                      <span className="text-[10px] uppercase font-bold tracking-tighter text-white/40">Source</span>
-                      <span className="text-[10px] uppercase font-bold tracking-tighter text-primary">{locationsSource === 'db' ? 'DB' : 'Web'}</span>
-                    </div>
-                  )}
                 </div>
-                <div className="map-screen-legend absolute bottom-6 left-6 z-[1101] glass-pill px-4 py-4 rounded-xl flex flex-col gap-3 hidden md:flex">
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 rounded-full bg-primary pin-glow" aria-hidden />
-                    <span className="text-xs font-medium text-white/80">Filmed Here</span>
+                {/* Sağ üst: Kompakt lejand — alan vs tam nokta */}
+                <div className="map-screen-legend absolute top-6 right-6 z-[1101] hidden md:flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <div className="map-screen-legend-dot" aria-hidden title="Exact filming location">
+                    <span className="map-screen-legend-dot-inner" />
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 rounded-full border border-primary bg-primary/20" aria-hidden />
-                    <span className="text-xs font-medium text-white/80">Region Highlight</span>
-                  </div>
+                  <span className="map-screen-legend-label">Exact spot</span>
+                  <div className="map-screen-legend-sep" aria-hidden />
+                  <div className="map-screen-legend-area map-screen-legend-area--orange" aria-hidden title="Filmed in this country" />
+                  <span className="map-screen-legend-label">Country</span>
+                  <div className="map-screen-legend-sep" aria-hidden />
+                  <div className="map-screen-legend-approx" aria-hidden title="Filmed somewhere in this area (no exact location)" />
+                  <span className="map-screen-legend-label">Approx. area</span>
                 </div>
               </div>
             </div>

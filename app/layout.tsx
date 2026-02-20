@@ -93,7 +93,15 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const jsonLd = {
+  const organization = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Where Was It Filmed",
+    "url": siteUrl,
+    "logo": { "@type": "ImageObject", "url": `${siteUrl}/assets/film.png` },
+    "sameAs": ["https://github.com/aktasevren"],
+  };
+  const webApp = {
     "@context": "https://schema.org",
     "@type": "WebApplication",
     "name": "Where Was It Filmed",
@@ -101,61 +109,38 @@ export default function RootLayout({
     "url": siteUrl,
     "applicationCategory": "EntertainmentApplication",
     "operatingSystem": "Any",
-    "offers": {
-      "@type": "Offer",
-      "price": "0",
-      "priceCurrency": "USD"
-    },
-    "author": {
-      "@type": "Person",
-      "name": "Evren Aktaş",
-      "url": "https://github.com/aktasevren",
-      "sameAs": [
-        "https://www.linkedin.com/in/evren-aktas/",
-        "https://github.com/aktasevren"
-      ]
-    },
-    "publisher": {
-      "@type": "Organization",
-      "name": "Where Was It Filmed",
-      "logo": {
-        "@type": "ImageObject",
-        "url": `${siteUrl}/assets/film.png`
-      }
-    },
-    "featureList": [
-      "Find movie filming locations",
-      "Interactive map with markers",
-      "Search movies by title",
-      "Detailed location information"
-    ]
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "author": { "@type": "Person", "name": "Evren Aktaş", "url": "https://github.com/aktasevren" },
+    "publisher": { "@type": "Organization", "name": "Where Was It Filmed", "logo": { "@type": "ImageObject", "url": `${siteUrl}/assets/film.png` } },
+    "featureList": ["Find movie filming locations", "Interactive map with markers", "Search movies by title", "Detailed location information"],
   };
+  const webSite = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Where Was It Filmed",
+    "url": siteUrl,
+    "description": "Discover where your favorite movies and TV shows were filmed. Interactive map of filming locations.",
+    "publisher": { "@type": "Organization", "name": "Where Was It Filmed", "logo": { "@type": "ImageObject", "url": `${siteUrl}/assets/film.png` } },
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": { "@type": "EntryPoint", "urlTemplate": `${siteUrl}/search?q={search_term_string}` },
+      "query-input": "required name=search_term_string",
+    },
+  };
+  const sanitizeJsonLd = (obj: object) =>
+    JSON.stringify(obj).replace(/</g, "\\u003c").replace(/>/g, "\\u003e");
 
   return (
     <html lang="en" className="dark" data-scroll-behavior="smooth">
       <head>
-        {/* Preload critical fonts */}
-        <link
-          rel="preconnect"
-          href="https://fonts.googleapis.com"
-        />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
-          rel="stylesheet"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-          rel="stylesheet"
-        />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
+        <meta name="theme-color" content="#0a0a0f" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: sanitizeJsonLd(organization) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: sanitizeJsonLd(webApp) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: sanitizeJsonLd(webSite) }} />
       </head>
       <body>
         <StoreProvider>

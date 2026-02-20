@@ -145,10 +145,14 @@ export async function GET(request) {
       source: 'web',
     });
   } catch (error) {
-    console.error('Suggestion search error:', error.message);
-    return NextResponse.json(
-      { error: 'Search failed', movies: [], series: [], source: null },
-      { status: 500 }
-    );
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('Suggestion search error:', error.message);
+    }
+    return NextResponse.json({
+      movies: [],
+      series: [],
+      continue: null,
+      source: null,
+    });
   }
 }

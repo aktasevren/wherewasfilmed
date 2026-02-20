@@ -260,7 +260,7 @@ export default function Searchbar({ variant }) {
                 className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
                   searchSource === 'db' ? 'bg-primary/20 text-primary border border-primary/30' : 'bg-white/10 text-white/70 border border-white/20'
                 }`}
-                title={searchSource === 'db' ? 'Sonuçlar yerel veritabanından' : 'Sonuçlar web (Wikidata)'}
+                title={searchSource === 'db' ? 'Results from local database' : 'Results from web (Wikidata)'}
               >
                 {searchSource === 'db' ? 'DB' : 'Web'}
               </span>
@@ -301,7 +301,7 @@ export default function Searchbar({ variant }) {
                 className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
                   searchSource === 'db' ? 'bg-primary/20 text-primary' : 'bg-white/10 text-white/60'
                 }`}
-                title={searchSource === 'db' ? 'Yerel veritabanı' : 'Web (Wikidata)'}
+                title={searchSource === 'db' ? 'Local database' : 'Web (Wikidata)'}
               >
                 {searchSource === 'db' ? 'DB' : 'Web'}
               </span>
@@ -334,7 +334,7 @@ export default function Searchbar({ variant }) {
               onMouseDown={(e) => e.preventDefault()}
               onClick={handleLoadMore}
             >
-              Daha fazlası
+              Load more
             </button>
           )}
           {loadingMore && <div className="search-suggestions-loading">Loading more...</div>}

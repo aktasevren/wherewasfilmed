@@ -148,10 +148,87 @@ header .site-logo-title *,
   background-color: rgba(255, 255, 255, 0.03);
 }
 
-/* Location Loading — kırmızı sinema perdesi açılır + yükleme çubuğu */
+/* Location Loading — sinematik perde + yükleme alanı */
 .location-loading-screen,
 .location-loading-screen .curtain-loading-text {
   font-family: "Space Grotesk", sans-serif;
+}
+
+.location-loading-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 120% 80% at 50% 50%, rgba(20, 8, 8, 0.95) 0%, transparent 55%),
+    radial-gradient(ellipse 80% 50% at 50% 100%, rgba(60, 20, 20, 0.4) 0%, transparent 50%),
+    #080608;
+  pointer-events: none;
+}
+
+.location-loading-grain {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  opacity: 0.06;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.location-loading-label {
+  letter-spacing: 0.35em;
+  animation: location-label-pulse 2.5s ease-in-out infinite;
+}
+@keyframes location-label-pulse {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 0.5; }
+}
+
+.location-loading-title {
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.5);
+}
+
+.location-loading-count {
+  letter-spacing: 0.02em;
+}
+
+/* Loading bar: dolan bar, tahmini süre metni (0/32 yok) */
+.location-loading-bar-track {
+  width: 100%;
+  height: 12px;
+  background: rgba(0, 0, 0, 0.55);
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+.location-loading-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #b45309 0%, #d97706 28%, #f59e0b 50%, #fbbf24 72%, #f59e0b 100%);
+  background-size: 200% 100%;
+  box-shadow:
+    0 0 24px rgba(245, 158, 11, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transition: width 0.6s cubic-bezier(0.33, 0, 0.2, 1);
+  animation: location-loading-bar-glow 2.5s ease-in-out infinite;
+  min-width: 4%;
+}
+.location-loading-bar-fill--indeterminate {
+  width: 36% !important;
+  min-width: 36%;
+  animation: location-loading-bar-indeterminate 1.6s ease-in-out infinite;
+}
+@keyframes location-loading-bar-glow {
+  0%, 100% { opacity: 1; filter: brightness(1); }
+  50% { opacity: 0.92; filter: brightness(1.1); }
+}
+@keyframes location-loading-bar-indeterminate {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(280%); }
+}
+.location-loading-message {
+  letter-spacing: 0.04em;
+  font-weight: 500;
 }
 
 .curtains {
@@ -164,10 +241,9 @@ header .site-logo-title *,
   top: 0;
   bottom: 0;
   box-shadow:
-    0 0 60px rgba(0, 0, 0, 0.5),
-    inset -2px 0 20px rgba(0, 0, 0, 0.25);
+    0 0 80px rgba(0, 0, 0, 0.6),
+    inset -2px 0 24px rgba(0, 0, 0, 0.3);
 }
-/* Kumaş hissi: dikey şeritler (perde kıvrımları) */
 .curtain::before {
   content: "";
   position: absolute;
@@ -184,9 +260,9 @@ header .site-logo-title *,
 .curtain-left {
   left: 0;
   background:
-    linear-gradient(105deg, rgba(0,0,0,0.15) 0%, transparent 18%),
+    linear-gradient(105deg, rgba(0,0,0,0.2) 0%, transparent 18%),
     linear-gradient(180deg, #a80a0a 0%, #8b0000 15%, #700 35%, #5c0000 50%, #700 65%, #8b0000 85%, #a80a0a 100%);
-  animation: curtain-open-left 2.4s cubic-bezier(0.33, 0, 0.2, 1) forwards;
+  animation: curtain-open-left 2.5s cubic-bezier(0.33, 0, 0.2, 1) forwards;
 }
 .curtain-left::after {
   content: "";
@@ -202,9 +278,9 @@ header .site-logo-title *,
 .curtain-right {
   right: 0;
   background:
-    linear-gradient(75deg, rgba(0,0,0,0.15) 0%, transparent 18%),
+    linear-gradient(75deg, rgba(0,0,0,0.2) 0%, transparent 18%),
     linear-gradient(180deg, #a80a0a 0%, #8b0000 15%, #700 35%, #5c0000 50%, #700 65%, #8b0000 85%, #a80a0a 100%);
-  animation: curtain-open-right 2.4s cubic-bezier(0.33, 0, 0.2, 1) forwards;
+  animation: curtain-open-right 2.5s cubic-bezier(0.33, 0, 0.2, 1) forwards;
 }
 .curtain-right::after {
   content: "";
@@ -227,12 +303,12 @@ header .site-logo-title *,
 }
 
 .curtain-content {
-  animation: curtain-content-in 0.9s ease-out 1.4s both;
+  animation: curtain-content-in 1s ease-out 1.5s both;
 }
 @keyframes curtain-content-in {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(24px);
   }
   to {
     opacity: 1;
@@ -242,28 +318,38 @@ header .site-logo-title *,
 
 .curtain-progress-track {
   width: 100%;
-  height: 6px;
-  background: rgba(255, 255, 255, 0.1);
+  height: 8px;
+  background: rgba(0, 0, 0, 0.5);
   border-radius: 999px;
   overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 .curtain-progress-bar {
   height: 100%;
   border-radius: 999px;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.6));
-  box-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
-  transition: width 0.4s ease-out;
+  background: linear-gradient(90deg, #b45309 0%, #d97706 25%, #f59e0b 50%, #d97706 75%, #b45309 100%);
+  background-size: 200% 100%;
+  box-shadow:
+    0 0 20px rgba(245, 158, 11, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  transition: width 0.5s cubic-bezier(0.33, 0, 0.2, 1);
+  animation: curtain-progress-glow 3s ease-in-out infinite;
 }
 .curtain-progress-bar--indeterminate {
-  width: 42% !important;
-  animation: curtain-progress-indeterminate 1.6s ease-in-out infinite;
+  width: 38% !important;
+  animation: curtain-progress-indeterminate 1.8s ease-in-out infinite;
+}
+@keyframes curtain-progress-glow {
+  0%, 100% { opacity: 1; filter: brightness(1); }
+  50% { opacity: 0.95; filter: brightness(1.08); }
 }
 @keyframes curtain-progress-indeterminate {
   0%, 100% {
     transform: translateX(-100%);
   }
   50% {
-    transform: translateX(230%);
+    transform: translateX(260%);
   }
 }
 
@@ -529,6 +615,80 @@ body {
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.map-reset-button {
+  background: rgba(12, 12, 18, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+.map-reset-button:hover {
+  background: rgba(18, 18, 28, 0.95);
+  box-shadow: 0 4px 24px rgba(17, 17, 212, 0.35);
+}
+.map-screen-legend {
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 10px;
+  background: rgba(12, 12, 18, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.85);
+}
+.map-screen-legend-dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+.map-screen-legend-dot-inner {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #dc2626;
+  border: 2px solid #0a0a0a;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+.map-screen-legend-label {
+  white-space: nowrap;
+}
+.map-screen-legend-sep {
+  width: 1px;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
+}
+.map-screen-legend-area {
+  width: 14px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.map-screen-legend-area--orange {
+  background: rgba(232, 93, 4, 0.5);
+  border: 1px solid #c24e03;
+}
+.map-screen-legend-area--blue {
+  background: rgba(30, 58, 138, 0.5);
+  border: 1px solid #1e40af;
+}
+.map-screen-legend-approx {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(30, 58, 138, 0.35);
+  border: 1px solid rgba(30, 64, 175, 0.6);
+  flex-shrink: 0;
 }
 .pin-glow {
   box-shadow: 0 0 20px rgba(17, 17, 212, 0.6);
@@ -818,13 +978,14 @@ body {
   color: rgba(255, 255, 255, 0.65);
 }
 
-/* Harita sütunu: stretch ile sidebar kadar yüksek; içinde sticky harita */
+/* Harita sütunu: stretch ile sidebar kadar yüksek; içinde sticky harita; sağdan içeri alındı */
 .map-screen-map {
   isolation: isolate;
   min-height: 0;
   flex: 1;
   min-width: 0;
   align-self: stretch;
+  padding-right: 2rem;
   /* Asgari yükseklik Leaflet için */
   min-height: 400px;
 }
@@ -944,6 +1105,7 @@ body {
     height: 55vh;
     width: 100% !important;
     z-index: 0;
+    padding-right: 0;
   }
 
   .selected-movie-container--map .map-screen-map-sticky {
@@ -1805,12 +1967,39 @@ body {
   z-index: 1000;
 }
 
-/* Harita ekranında ::after tile'ların üstüne binmesin (mobil siyah ekran fix) */
+/* Harita ekranında gölge/vignette yok; tile'ların üstüne binmesin (mobil siyah ekran fix) */
 .map-screen-leaflet .leaflet-container::after {
   z-index: 0;
+  box-shadow: none;
 }
 
-/* Custom Marker Icon */
+/* Harita: kırmızı belirgin nokta (siyah çerçeve) */
+.map-dot-marker {
+  background: none !important;
+  border: none !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+.map-dot-marker .map-dot {
+  display: block;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #dc2626;
+  border: 3px solid #0a0a0a;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.map-dot-marker:hover .map-dot {
+  transform: scale(1.2);
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.6);
+}
+
+/* Custom Marker Icon (legacy) */
 .custom-marker-icon {
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
   transition: transform 0.3s ease;
@@ -3007,4 +3196,24 @@ p {
   .footer-tagline {
     font-size: 0.85rem;
   }
+}
+
+/* ---------- Blog: index and post ---------- */
+.blog-hero {
+  background: linear-gradient(180deg, rgba(10, 10, 15, 0.97) 0%, rgba(10, 10, 15, 0.99) 100%);
+}
+.blog-card-image {
+  transition: opacity 0.2s ease;
+}
+.blog-card:hover .blog-card-image {
+  opacity: 0.95;
+}
+.blog-post-hero {
+  background: linear-gradient(180deg, rgba(15, 15, 22, 0.98) 0%, rgba(10, 10, 15, 1) 100%);
+}
+.blog-post-prose p {
+  margin-bottom: 0;
+}
+.blog-post-prose p + p {
+  margin-top: 1.25em;
 }
